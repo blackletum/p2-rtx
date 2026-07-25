@@ -115,7 +115,11 @@ namespace components
 
 				HRESULT hr;
 				hr = D3DXCreateTextureFromFileA(dev, file_path.c_str(), tex);
-				if (FAILED(hr)) common::log("Renderer", std::format("Failed to load {}", file_path), common::LOG_TYPE::LOG_TYPE_ERROR, true);
+				if (FAILED(hr))
+				{
+					common::log("Renderer", std::format("Failed to load {}", file_path), common::LOG_TYPE::LOG_TYPE_ERROR, true);
+					//MessageBoxA(nullptr, std::format("Failed to load required addon texture {}.\nFile is either missing or init failed. Please retry!", file_path).c_str(), "Error", MB_ICONERROR);
+				}
 			};
 
 		const auto dev = game::get_d3d_device();

@@ -22,8 +22,8 @@
 //
 
 1 VERSIONINFO
- FILEVERSION 1,1,0,0
- PRODUCTVERSION 1,1,0,0
+ FILEVERSION 2,4,0,0
+ PRODUCTVERSION 2,4,0,0
  FILEFLAGSMASK 0x0L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -41,12 +41,12 @@ BEGIN
             VALUE "Comments", "Installer for Portal2 RTX Remix Compatibility Mod"
             VALUE "CompanyName", "#xoxor4d"
             VALUE "FileDescription", "Portal2 RTX Remix Compatibility Mod Installer"
-            VALUE "FileVersion", "1.0.0.0"
+            VALUE "FileVersion", "2.4.0.0"
             VALUE "InternalName", "Portal2-Remix-CompMod-Installer"
             VALUE "LegalCopyright", "Copyright (C) #xoxor4d"
-            VALUE "OriginalFilename", "GTAIV-Remix-CompMod-Installer.exe"
+            VALUE "OriginalFilename", "Portal2-Remix-CompMod-Installer.exe"
             VALUE "ProductName", "Portal2 RTX Remix Compatibility Mod"
-            VALUE "ProductVersion", "1.0.0.0"
+            VALUE "ProductVersion", "2.4.0.0"
         END
     END
     BLOCK "VarFileInfo"

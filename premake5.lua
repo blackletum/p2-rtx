@@ -161,8 +161,6 @@ workspace "p2-rtx"
             "/Zm100 -Zm100" 
         }
 
-		-- debugargs { "-novid -disable_d3d9_hacks -limitvsconst -disallowhwmorph -softparticlesdefaultoff -no_compressed_verts +mat_phong 1" }
-
 		filter "configurations:Debug or configurations:Release"
 			if(os.getenv("PORTAL2_ROOT")) then
 				print ("Setup paths using environment variable 'PORTAL2_ROOT' :: '" .. os.getenv("PORTAL2_ROOT") .. "'")
@@ -175,7 +173,7 @@ workspace "p2-rtx"
 		filter "configurations:Dev"
 			if(os.getenv("PORTAL2_SEC_ROOT")) then
 				print ("Setup paths using environment variable 'PORTAL2_SEC_ROOT' :: '" .. os.getenv("PORTAL2_SEC_ROOT") .. "'")
-				targetdir(os.getenv("PORTAL2_SEC_ROOT") .. "/" .. "bin/plugins")
+				targetdir(os.getenv("PORTAL2_SEC_ROOT"))
 				debugdir (os.getenv("PORTAL2_SEC_ROOT"))
 				debugcommand (os.getenv("PORTAL2_SEC_ROOT") .. "/" .. "run-p2-rtx.bat")
 			end
@@ -187,11 +185,6 @@ workspace "p2-rtx"
 		}
 
 		warnings "Extra"
-
-		-- Post-build
-		--[[ postbuildcommands {
-			"MOVE /Y \"$(TargetDir)p2-rtx.dll\" \"$(TargetDir)p2-rtx.asi\"",
-		} ]]
 
 		dependencies.imports()
 
