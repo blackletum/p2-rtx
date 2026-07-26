@@ -6,6 +6,13 @@
 #define HOOK_RETN_PLACE_DEF(NAME)		DWORD (NAME) = 0u
 #define HOOK_RETN_PLACE(NAME, OFFSET)	(NAME) = (OFFSET)
 
+// creates typdef for detour - creates var NAME_og
+#define DETOUR_TYPEDEF(NAME, RETN_TYPE, CALLING_CONV, ...) \
+		typedef RETN_TYPE (CALLING_CONV* NAME##_t)(__VA_ARGS__); \
+		NAME##_t NAME##_og = nullptr;
+
+#define DETOUR_CAST(FN) reinterpret_cast<LPVOID*>(&(FN))
+
 namespace utils
 {
 	namespace mem
@@ -109,13 +116,28 @@ namespace utils
 		Fn virtual_function(void* inst, size_t index) {
 			return reinterpret_cast<Fn>(virtual_table(inst)[index]);
 		}
+
+		// ------
+
+		struct module_info
+		{
+			DWORD handle = 0u;
+			DWORD size = 0u;
+			std::string name;
+		};
+
+		DWORD find_pattern_in_module(const HMODULE module_name, const std::string_view& signature, DWORD offset = 0u, [[maybe_unused]] const char* description = nullptr);
+		DWORD find_pattern(module_info& module_info, const std::string_view& signature, const DWORD& offset, [[maybe_unused]] const char* description = nullptr, bool is_active = true, const DWORD& inactive_offset = 0u);
+		DWORD find_import_addr(const HMODULE hmodule, const char* dll_name, const char* func_name);
+		uint32_t resolve_relative_call_address(uint32_t call_instruction_addr);
+		uint32_t resolve_relative_jump_address(uint32_t instruction_addr, uint32_t instruction_size, uint32_t bytes_until_relative_addr);
 	}
 
 	class hook
 	{
 	public:
 
-		hook() : initialized(false), installed(false), place(nullptr), stub(nullptr), original(nullptr), useJump(false), protection(0) { ZeroMemory(this->buffer, sizeof(this->buffer)); }
+		hook() : initialized(false), installed(false), place(nullptr), stub(nullptr), original(nullptr), trampoline(nullptr), useJump(false), protection(0) { ZeroMemory(this->buffer, sizeof(this->buffer)); }
 
 		hook(void* place, void* stub, bool useJump = true) : hook() { this->initialize(place, stub, useJump); }
 		hook(void* place, void(*stub)(), bool useJump = true) : hook(place, reinterpret_cast<void*>(stub), useJump) {}
@@ -132,7 +154,10 @@ namespace utils
 		hook* uninstall(bool unprotect = true);
 
 		void* get_address();
-		void quick();
+		hook* quick();
+
+		DWORD create_trampoline();
+		void* get_trampoline() { return this->trampoline; }
 
 		template <typename T> static std::function<T> call(DWORD function)
 		{
@@ -149,6 +174,11 @@ namespace utils
 			return call<T>(reinterpret_cast<DWORD>(function));
 		}
 
+		static void set_wstring(void* place, const wchar_t* string, size_t length);
+		static void set_wstring(DWORD place, const wchar_t* string, size_t length);
+		static void set_wstring(void* place, const wchar_t* string);
+		static void set_wstring(DWORD place, const wchar_t* string);
+
 		static void set_string(void* place, const char* string, size_t length);
 		static void set_string(DWORD place, const char* string, size_t length);
 
@@ -164,6 +194,9 @@ namespace utils
 		static void redirect_jump(void* place, void* stub);
 		static void redirect_jump(DWORD place, void* stub);
 
+		static bool conditional_jump_to_jmp(DWORD place);
+		static bool detour(const DWORD& offset, void* stub, void** original);
+
 		template <typename T> static void set(void* place, T value)
 		{
 			DWORD oldProtect;
@@ -178,6 +211,30 @@ namespace utils
 		template <typename T> static void set(DWORD place, T value)
 		{
 			return set<T>(reinterpret_cast<void*>(place), value);
+		}
+
+		// set multiple bytes
+		static void set(void* place, const BYTE* bytes, size_t size)
+		{
+			DWORD oldProtect;
+			VirtualProtect(place, size, PAGE_EXECUTE_READWRITE, &oldProtect);
+			memcpy(place, bytes, size);
+			VirtualProtect(place, size, oldProtect, &oldProtect);
+			FlushInstructionCache(GetCurrentProcess(), place, size);
+		}
+
+		// Variadic template to accept multiple BYTE arguments
+		template <typename... Args>
+		static void set(void* place, BYTE first, Args... rest)
+		{
+			BYTE bytes[] = { first, static_cast<BYTE>(rest)... };
+			set(place, bytes, sizeof(bytes));
+		}
+
+		template <typename... Args>
+		static void set(DWORD place, BYTE first, Args... rest)
+		{
+			set(reinterpret_cast<void*>(place), first, rest...);
 		}
 
 		template <std::size_t Index, typename ReturnType, typename... Args>
@@ -196,6 +253,7 @@ namespace utils
 		void* place;
 		void* stub;
 		void* original;
+		void* trampoline;
 		char buffer[5];
 		bool useJump;
 
@@ -240,7 +298,7 @@ namespace utils
 		}
 
 	private:
-		unsigned int**				m_base_pointer_ = nullptr;
+		unsigned int** m_base_pointer_ = nullptr;
 		unsigned int				m_size_ = 0u;
 		std::unique_ptr<void* []>	m_originals_ = { };
 	};
@@ -261,7 +319,7 @@ namespace utils
 				{
 					return static_cast<T>(interface_ret);
 				}
-				
+
 				MessageBoxA(HWND_DESKTOP, sz_object, "Failed to find interface:", MB_ICONERROR);
 				return NULL;
 			}
