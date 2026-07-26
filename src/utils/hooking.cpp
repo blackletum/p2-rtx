@@ -79,8 +79,7 @@ namespace utils
 							pattern_bytes.push_back(hex_to_byte(signature[i], signature[i + 1]));
 							mask.push_back(false);
 							i += 2;
-						}
-						else {
+						} else {
 							throw std::runtime_error("Malformed signature");
 						}
 					}
@@ -115,8 +114,7 @@ namespace utils
 							break;
 						}
 					}
-				}
-				else {
+				} else {
 					found = memcmp(base + i, pattern_bytes.data(), pattern_length) == 0;
 				}
 
@@ -126,8 +124,7 @@ namespace utils
 					{
 						if (description) {
 							log("Hook", std::format("Found pattern @ (0x{:X}) ({})", place, description), common::LOG_TYPE::LOG_TYPE_DEFAULT, false);
-						}
-						else {
+						} else {
 							log("Hook", std::format("Found pattern @ (0x{:X})", place), common::LOG_TYPE::LOG_TYPE_DEFAULT, false);
 						}
 					}
@@ -144,10 +141,10 @@ namespace utils
 			return 0;
 		}
 
-		DWORD find_pattern(module_info& module_info, const std::string_view& signature, const DWORD& offset, const char* description, const bool is_active, const DWORD& inactive_offset)
+		DWORD find_pattern(const module_info& module_info, const std::string_view& signature, const DWORD& offset, const char* description, const bool is_active, const DWORD& inactive_offset)
 		{
 			if (!is_active) {
-				return inactive_offset + offset;
+				return module_info.handle + inactive_offset + offset;
 			}
 
 			if (!module_info.handle) {
@@ -250,10 +247,9 @@ namespace utils
 					{
 #if DEBUG
 						if (description) {
-							log("Hook", std::format("Found pattern @ (0x{:X}) ({})", place, description), LOG_TYPE::LOG_TYPE_DEFAULT, false);
-						}
-						else {
-							log("Hook", std::format("Found pattern @ (0x{:X})", place), LOG_TYPE::LOG_TYPE_DEFAULT, false);
+							log("Hook", std::format("Found pattern @ (0x{:X}) ({})", place, description), common::LOG_TYPE::LOG_TYPE_DEFAULT, false);
+						} else {
+							log("Hook", std::format("Found pattern @ (0x{:X})", place), common::LOG_TYPE::LOG_TYPE_DEFAULT, false);
 						}
 #endif
 
@@ -261,8 +257,7 @@ namespace utils
 						{
 							if (place == module_info.handle + inactive_offset + offset) {
 								log("Hook", std::format("> Pattern offset validated!", place), common::LOG_TYPE::LOG_TYPE_GREEN, true);
-							}
-							else {
+							} else {
 								log("Hook", std::format("> Pattern offset invalid!", place), common::LOG_TYPE::LOG_TYPE_ERROR, true);
 							}
 						}
@@ -273,8 +268,7 @@ namespace utils
 
 			if (description) {
 				log("Hook", std::format("Could not find pattern '{}' ({})", signature, description), common::LOG_TYPE::LOG_TYPE_ERROR, true);
-			}
-			else {
+			} else {
 				log("Hook", std::format("Could not find pattern '{}'", signature), common::LOG_TYPE::LOG_TYPE_ERROR, true);
 			}
 			return 0;
