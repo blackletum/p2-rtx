@@ -56,6 +56,8 @@ namespace p2
 	// - server
 	extern uint32_t hk_addr__scene_ent_on_start_event;
 	extern uint32_t hk_addr__scene_ent_on_finish_event;
+	extern uint32_t hk_addr__spawn_all_entities;
+	extern uint32_t retn_addr__spawn_all_entities;
 
 	// - engine
 	extern uint32_t hk_addr__on_map_load;
@@ -65,13 +67,43 @@ namespace p2
 	extern uint32_t hk_addr__while_recursive_world_node;
 	extern uint32_t hk_addr__while_recursive_world_node_og_retn;
 	extern uint32_t hk_addr__while_recursive_world_node_force_retn;
+	extern uint32_t mod_addr__while_recursive_world_node_01;
+	extern uint32_t nop_addr__while_recursive_world_node_02;
+	extern uint32_t mod_addr__while_recursive_world_node_03;
+	extern uint32_t nop_addr__draw_leaf;
+	extern uint32_t nop_addr__cbrushbatchrender_draw_opaque_bmodel;
+	extern uint32_t nop_addr__draw_displacements_in_leaf;
+	extern uint32_t mod_addr__shader_draw_chains;
+	extern uint32_t mod_addr__cbrushbatchrender_draw_opaque_bmodel;
+	extern uint32_t nop_addr__cbrushbatchrender_compute_lmap_pages;
+	extern uint32_t hk_addr__flow_through_area;
+	extern uint32_t nop_addr__flow_through_area;
+	extern uint32_t mod_addr__cstaticpropmgr_update_prop_visibility;
+	extern uint32_t nop_addr__cstaticpropmgr_update_prop_visibility;
 
 	// - client
 	extern uint32_t hk_addr__cviewrenderer_renderview;
 	extern uint32_t hk_addr__cviewrenderer_drawonemonitor;
+	extern uint32_t mod_addr__clientleafsystem_extract_culled_renderables;
+	extern uint32_t nop_addr__vguiscreen_draw_model;
+	extern uint32_t nop_addr__csimpleworldview_setup;
+	extern uint32_t mod_addr__csimpleworldview_setup;
+	extern uint32_t hk_addr__cportalghost_should_draw;
+	extern uint32_t hk_addr__draw_our_3rd_person_body_mesh;
+	extern uint32_t hk_addr__draw_our_3rd_person_weapon_mesh;
+	extern uint32_t fn_addr__draw_our_3rd_person_weapon_mesh;
+	extern uint32_t hk_addr__viewdrawscene_push_args;
+	extern uint32_t hk_addr__cbaseworldview_draw_setup;
+	extern uint32_t hk_addr__cbaseentity_update_visibility;
+	extern uint32_t hk_addr__cbaseentity_update_visibility_retn;
+	extern uint32_t nop_addr__cpropportal_create_attached_particles;
+	extern uint32_t nop_addr__write_savegame_screenshot_of_size;
+	extern uint32_t mod_addr__envprojectedtexture_should_update;
+	extern uint32_t hk_addr__cviewrenderer_init_fade_data;
+	extern uint32_t mod_addr__cbaseentity_should_draw;
 
 	// - shaderapidx9
-
+	extern uint32_t nop_addr__cshadermgr_set_pixel_shader;
 
 	// - studiorender
 

@@ -2190,7 +2190,7 @@ namespace components
 		HOOK_RETN_PLACE(while_recursive_world_node_force_retn, p2::hk_addr__while_recursive_world_node_force_retn); // E726B
 
 		// ^ :: while( ... node->contents < -1 .. ) -> jl to jle
-		utils::hook::set<BYTE>(ENGINE_BASE + USE_OFFSET(0xE7258, 0xE68F8), 0x7E); // 0125
+		utils::hook::set<BYTE>(p2::mod_addr__while_recursive_world_node_01, 0x7E);
 
 		// ^ :: while( ... !R_CullNode) - wrapper function to impl. additional culling control (force areas/leafs + use frustum culling when needed)
 		utils::hook(ENGINE_BASE + USE_OFFSET(0xE725B, 0xE68FB), r_cullnode_stub, HOOK_JUMP).install()->quick(); // 0125
@@ -2198,72 +2198,71 @@ namespace components
 		HOOK_RETN_PLACE(r_cullnode_skip_retn, ENGINE_BASE + USE_OFFSET(0xE726B, 0xE690B)); // 0125
 
 		// ^ :: backface check -> je to jl
-		utils::hook::nop(ENGINE_BASE + USE_OFFSET(0xE7323, 0xE69C3), 2); // 0125 // okay - draws a little more but not so heavy on perf.
+		utils::hook::nop(p2::nop_addr__while_recursive_world_node_02, 2); // okay - draws a little more but not so heavy on perf.
 
 		// ^ :: backface check -> jnz to je
-		utils::hook::set<BYTE>(ENGINE_BASE + USE_OFFSET(0xE732D, 0xE69CD), 0x74); // 0125 // ^
+		utils::hook::set<BYTE>(p2::mod_addr__while_recursive_world_node_03, 0x74); // ^
 
 		// R_DrawLeaf :: backface check (emissive lamps) plane normal >= -0.00999f
-		utils::hook::nop(ENGINE_BASE + USE_OFFSET(0xE6F23, 0xE65C3), 6); // 0125 // ^ 
+		utils::hook::nop(p2::nop_addr__draw_leaf, 6); // ^ 
 
 		// CBrushBatchRender::DrawOpaqueBrushModel :: :: backface check - nop 'if ( bShadowDepth )' to disable culling
-		utils::hook::nop(ENGINE_BASE + USE_OFFSET(0x7196E, 0x7156E), 2); // 0125
+		utils::hook::nop(p2::nop_addr__cbrushbatchrender_draw_opaque_bmodel, 2);
 
 		// CClientLeafSystem::ExtractCulledRenderables :: disable 'engine->CullBox' check to disable entity culling in leafs
 		// needs r_PortalTestEnts to be 0 -> je to jmp (0xEB)
-		utils::hook::set<BYTE>(CLIENT_BASE + USE_OFFSET(0xE20F5, 0xDE4D5), 0xEB); // 0125
+		utils::hook::set<BYTE>(p2::mod_addr__clientleafsystem_extract_culled_renderables, 0xEB);
 
 		// DrawDisplacementsInLeaf :: nop 'Frustum_t::CullBox' check to disable displacement (terrain) culling in leafs
-		utils::hook::nop(ENGINE_BASE + USE_OFFSET(0xE6CE4, 0xE6384), 2); // 0125
+		utils::hook::nop(p2::nop_addr__draw_displacements_in_leaf, 2);
 
 		// C_VGuiScreen::DrawModel :: vgui screens (world) :: nop C_VGuiScreen::IsBackfacing check
-		utils::hook::nop(CLIENT_BASE + USE_OFFSET(0xCDD1E, 0xCA14E), 2); // 0125
+		utils::hook::nop(p2::nop_addr__vguiscreen_draw_model, 2);
 
 		// CSimpleWorldView::Setup :: nop 'DoesViewPlaneIntersectWater' check
-		utils::hook::nop(CLIENT_BASE + USE_OFFSET(0x1EB143, 0x1E5693), 2); // 0125
+		utils::hook::nop(p2::nop_addr__vguiscreen_draw_model, 2);
 
 		// ^ next instruction :: OR m_DrawFlags with 0x60 instead of 0x30
-		utils::hook::set<BYTE>(CLIENT_BASE + USE_OFFSET(0x1EB145, 0x1E5695) + 6, 0x60); // 0125
+		utils::hook::set<BYTE>(p2::mod_addr__csimpleworldview_setup + 6, 0x60);
 
 		// C_Portal_Player::DrawModel :: disable 'C_Portal_Player::ShouldSkipRenderingViewpointPlayerForThisView' check to always render chell
 		//utils::hook::nop(CLIENT_BASE + USE_OFFSET(0x27AEBB, 0x274FFB), 2); // 0125 ----> now done with 'draw_our_own_playerbody_mesh_stub' hook
 
-		utils::hook(CLIENT_BASE + USE_OFFSET(0x28357C, 0x27D4AC), cportalghost_should_draw_stub).install()->quick(); // 0125
-		HOOK_RETN_PLACE(cportalghost_should_draw_retn, CLIENT_BASE + USE_OFFSET(0x283581, 0x27D4B1)); // 0125
-
+		utils::hook(p2::hk_addr__cportalghost_should_draw, cportalghost_should_draw_stub).install()->quick();
+		HOOK_RETN_PLACE(cportalghost_should_draw_retn, p2::hk_addr__cportalghost_should_draw + 5u);
 
 		// helper var around C_BaseAnimating::DrawModel so we know when we are drawing our player mesh
-		utils::hook(CLIENT_BASE + USE_OFFSET(0x27AEB4, 0x274FF4), draw_our_3rd_person_body_mesh_stub, HOOK_JUMP).install()->quick();
-		HOOK_RETN_PLACE(draw_our_3rd_person_body_mesh_retn, CLIENT_BASE + USE_OFFSET(0x27AEBD, 0x274FFD));
-		utils::hook(CLIENT_BASE + USE_OFFSET(0x27AEE5, 0x275025), post_draw_our_3rd_person_body_mesh_stub, HOOK_JUMP).install()->quick();
+		utils::hook(p2::hk_addr__draw_our_3rd_person_body_mesh, draw_our_3rd_person_body_mesh_stub, HOOK_JUMP).install()->quick();
+		HOOK_RETN_PLACE(draw_our_3rd_person_body_mesh_retn, p2::hk_addr__draw_our_3rd_person_body_mesh + 9u); // 27AEBD
+		utils::hook(p2::hk_addr__draw_our_3rd_person_body_mesh + 49u, post_draw_our_3rd_person_body_mesh_stub, HOOK_JUMP).install()->quick(); // 27AEE5
 
-		// same ^ for C_CombatWeaponClone::DrawModel (not needed for l4d2)
-		utils::hook(CLIENT_BASE + USE_OFFSET(0x98464, 0x950B4), draw_our_3rd_person_weapon_mesh_stub, HOOK_JUMP).install()->quick(); // E8 ? ? ? ? 5E 5D C2 ? ? ? ? 55 8B EC 56 8B F1 57
-		HOOK_RETN_PLACE(draw_our_3rd_person_weapon_mesh_retn, CLIENT_BASE + USE_OFFSET(0x98469, 0x950B9)); // ^ + offs 4
-		HOOK_RETN_PLACE(draw_our_3rd_person_weapon_mesh_og_func, CLIENT_BASE + USE_OFFSET(0x5B6E0, 0x58710)); // 55 8B EC 83 EC ? 53 57 8B F9 8B 0D ? ? ? ? 89 7D ? FF 15
+		// same ^ for C_CombatWeaponClone::DrawModel
+		utils::hook(p2::hk_addr__draw_our_3rd_person_weapon_mesh, draw_our_3rd_person_weapon_mesh_stub, HOOK_JUMP).install()->quick();
+		HOOK_RETN_PLACE(draw_our_3rd_person_weapon_mesh_retn, p2::hk_addr__draw_our_3rd_person_weapon_mesh + 5u);
+		HOOK_RETN_PLACE(draw_our_3rd_person_weapon_mesh_og_func, p2::fn_addr__draw_our_3rd_person_weapon_mesh);
 
 		// CShaderManager::SetPixelShader :: disable warning print + place stub so we can break and see what type of shader is failing to load
-		utils::hook::nop(RENDERER_BASE + USE_OFFSET(0x2B244, 0x2AAB4), 6); // 0125 // disable 'Trying to set a pixel shader that failed loading' print
-		utils::hook(RENDERER_BASE + USE_OFFSET(0x2B24A, 0x2AABA), set_pixelshader_warning_stub, HOOK_JUMP).install()->quick(); // 0125
-		HOOK_RETN_PLACE(set_pixelshader_warning_retn, RENDERER_BASE + USE_OFFSET(0x2B24F, 0x2AABF)); // 0125
+		utils::hook::nop(p2::nop_addr__cshadermgr_set_pixel_shader, 6); // disable 'Trying to set a pixel shader that failed loading' print
+		//utils::hook(RENDERER_BASE + USE_OFFSET(0x2B24A, 0x2AABA), set_pixelshader_warning_stub, HOOK_JUMP).install()->quick();
+		//HOOK_RETN_PLACE(set_pixelshader_warning_retn, RENDERER_BASE + USE_OFFSET(0x2B24F, 0x2AABF));
 
 		// Shader_DrawChains :: disable g_pMaterialSystemConfig->nFullbright == 1 check when rendering painted surfaces (binds the "lightmap" (paint map))
-		utils::hook::set<BYTE>(ENGINE_BASE + USE_OFFSET(0xE958D, 0xE8C4D), 0xEB); // 0125
+		utils::hook::set<BYTE>(p2::mod_addr__shader_draw_chains, 0xEB);
 
 		// CBrushBatchRender::DrawOpaqueBrushModel :: ^ same for brushmodels
-		utils::hook::nop(ENGINE_BASE + USE_OFFSET(0x7193A, 0x7153A), 2); // 0125
-		utils::hook::set<BYTE>(ENGINE_BASE + USE_OFFSET(0x71940, 0x71540), 0xEB); // 0125
+		utils::hook::nop(p2::mod_addr__cbrushbatchrender_draw_opaque_bmodel, 2);
+		utils::hook::set<BYTE>(p2::mod_addr__cbrushbatchrender_draw_opaque_bmodel + 6u, 0xEB);
 
 		// CBrushBatchRender::ComputeLightmapPages :: ^ for fastpath
-		utils::hook::nop(ENGINE_BASE + USE_OFFSET(0x6EC00, 0x6E710), 2); // 0125
+		utils::hook::nop(p2::nop_addr__cbrushbatchrender_compute_lmap_pages, 2);
 
 
 
 		// Fix map visibility when looking through portals when r_portal_stencil_depth == 0
 		// - Map_VisSetup called by CViewRender::ViewDrawScene --> CViewRender::SetupVis :: uses player view and 1 visOrigin if no custom vis is provided
 		// - Add player vis and call 'CPortalRenderable_FlatBasic::AddToVisAsExitPortal' for both active portals before rendering the main scene
-		utils::hook(CLIENT_BASE + USE_OFFSET(0x1F29C4, 0x1ECF04), viewdrawscene_push_args_stub, HOOK_JUMP).install()->quick(); // 0125
-		HOOK_RETN_PLACE(viewdrawscene_push_args_retn, CLIENT_BASE + USE_OFFSET(0x1F29C9, 0x1ECF09)); // 0125
+		utils::hook(p2::hk_addr__viewdrawscene_push_args, viewdrawscene_push_args_stub, HOOK_JUMP).install()->quick();
+		HOOK_RETN_PLACE(viewdrawscene_push_args_retn, p2::hk_addr__viewdrawscene_push_args + 5u);
 
 		// not used rn
 		// ^ HACK: because 'AddToVisAsExitPortal' adds custom vis. we have to null the custom vis arg before the world list building func calculates area vis (R_SetupAreaBits)
@@ -2274,26 +2273,26 @@ namespace components
 		//HOOK_RETN_PLACE(pre_build_worldlists_retn, ENGINE_BASE + USE_OFFSET(0xDD54F, 0xDCBCF));
 
 		// ^ Portal area vis hack
-		utils::hook(ENGINE_BASE + USE_OFFSET(0x11025C, 0x10F0EC), flow_through_area_wrapper, HOOK_CALL).install()->quick(); // 0125
-		utils::hook::nop(ENGINE_BASE + USE_OFFSET(0x110296, 0x10F126), 5); // 0125 // nop 'R_SetupVisibleAreaFrustums' call, handled in func above
+		utils::hook(p2::hk_addr__flow_through_area, flow_through_area_wrapper, HOOK_CALL).install()->quick();
+		utils::hook::nop(p2::nop_addr__flow_through_area, 5); // 110296 // nop 'R_SetupVisibleAreaFrustums' call, handled in func above
 
 		// CBaseWorldView::DrawSetup :: save 'g_CurrentViewID' 
-		utils::hook(CLIENT_BASE + USE_OFFSET(0x1F105A, 0x1EB59A), save_viewid_stub, HOOK_JUMP).install()->quick(); // 0125
-		HOOK_RETN_PLACE(save_viewid_retn, CLIENT_BASE + USE_OFFSET(0x1F105F, 0x1EB59F)); // 0125
+		utils::hook(p2::hk_addr__cbaseworldview_draw_setup, save_viewid_stub, HOOK_JUMP).install()->quick();
+		HOOK_RETN_PLACE(save_viewid_retn, p2::hk_addr__cbaseworldview_draw_setup + 5u);
 
 
 		// C_BaseEntity::UpdateVisibility
-		utils::hook::nop(CLIENT_BASE + USE_OFFSET(0x76466, 0x73076), 10); // 0125
-		utils::hook(CLIENT_BASE + USE_OFFSET(0x76466, 0x73076), base_ent_update_vis_stub, HOOK_JUMP).install()->quick(); // 0125
-		HOOK_RETN_PLACE(base_ent_update_vis_draw_retn, CLIENT_BASE + USE_OFFSET(0x76470, 0x73080)); // 0125
-		HOOK_RETN_PLACE(base_ent_update_vis_skip_retn, CLIENT_BASE + USE_OFFSET(0x764F5, 0x73105)); // 0125
+		utils::hook::nop(p2::hk_addr__cbaseentity_update_visibility, 10); // 0125
+		utils::hook(p2::hk_addr__cbaseentity_update_visibility, base_ent_update_vis_stub, HOOK_JUMP).install()->quick(); // 0125
+		HOOK_RETN_PLACE(base_ent_update_vis_draw_retn, p2::hk_addr__cbaseentity_update_visibility + 10u); // 76470
+		HOOK_RETN_PLACE(base_ent_update_vis_skip_retn, p2::hk_addr__cbaseentity_update_visibility_retn); // 764F5
 
 		// #
 
 		// C_Prop_Portal::CreateAttachedParticles :: disable outer portal particle fx (on high shader/effect settings) (broken anyway)
-		utils::hook::nop(CLIENT_BASE + USE_OFFSET(0x28818D, 0x281FAD), 2); // 0125
-		utils::hook::nop(CLIENT_BASE + USE_OFFSET(0x288198, 0x281FB8) + 5, 1); // 0125
-		utils::hook::set<DWORD>(CLIENT_BASE + USE_OFFSET(0x288198, 0x281FB8), 0x00015CE9); // 0125 // 0F85 5B01 0000 to E9 5C 01 00 00 + 1 nop
+		utils::hook::nop(p2::nop_addr__cpropportal_create_attached_particles, 2);
+		utils::hook::nop(p2::nop_addr__cpropportal_create_attached_particles + 11u + 5u, 1);
+		utils::hook::set<DWORD>(USE_OFFSET(p2::nop_addr__cpropportal_create_attached_particles + 11u, CLIENT_BASE + 0x281FB8), 0x00015CE9); // 0F85 5B01 0000 to E9 5C 01 00 00 + 1 nop
 
 		// C_BeamSpotLight::ClientThink :: disable spotlight billboards
 		/*utils::hook::nop(CLIENT_BASE + USE_OFFSET(0x0, 0x937A9), 2);
@@ -2303,10 +2302,10 @@ namespace components
 		utils::hook::set<DWORD>(CLIENT_BASE + USE_OFFSET(0x0, 0x937C9), 0x0000FCE9);*/
 
 		// SpawnAllEntities:: try to not spawn sprites close to light models
-		utils::hook::nop(SERVER_BASE + USE_OFFSET(0x19FAA0, 0x19A870), 6); // 0125
-		utils::hook(SERVER_BASE + USE_OFFSET(0x19FAA0, 0x19A870), spawn_all_entities_stub, HOOK_JUMP).install()->quick(); // 0125
-		HOOK_RETN_PLACE(spawn_all_entities_jz_retn, SERVER_BASE + USE_OFFSET(0x19FAE4, 0x19A8B4)); // 0125
-		HOOK_RETN_PLACE(spawn_all_entities_retn, SERVER_BASE + USE_OFFSET(0x19FAA6, 0x19A876)); // 0125
+		utils::hook::nop(p2::hk_addr__spawn_all_entities, 6);
+		utils::hook(p2::hk_addr__spawn_all_entities, spawn_all_entities_stub, HOOK_JUMP).install()->quick();
+		HOOK_RETN_PLACE(spawn_all_entities_jz_retn, p2::retn_addr__spawn_all_entities); // 19FAE4
+		HOOK_RETN_PLACE(spawn_all_entities_retn, p2::hk_addr__spawn_all_entities + 6u); // 19FAA6
 
 
 		// #
@@ -2314,27 +2313,27 @@ namespace components
 
 		// Fix quicksave crashing - game tries to take a screenshot for the save file but thats not working with remix
 		// - this disables the 'RenderView' call in 'CViewRender::WriteSaveGameScreenshotOfSize'
-		utils::hook::nop(CLIENT_BASE + USE_OFFSET(0x1D6AE9, 0x1D0FC9), 4); // 0125
-		utils::hook::nop(CLIENT_BASE + USE_OFFSET(0x1D6AF5, 0x1D0FD5), 2); // 0125
-		utils::hook::nop(CLIENT_BASE + USE_OFFSET(0x1D6AF9, 0x1D0FD9), 2); // 0125
+		utils::hook::nop(p2::nop_addr__write_savegame_screenshot_of_size, 4);
+		utils::hook::nop(p2::nop_addr__write_savegame_screenshot_of_size + 12u, 2); // 0x1D6AF5
+		utils::hook::nop(p2::nop_addr__write_savegame_screenshot_of_size + 16u, 2); // 0x1D6AF9
 
 		// force some gpu_level 3 logic
 		// C_EnvProjectedTexture::ShouldUpdate :: always return true
-		utils::hook::set<WORD>(CLIENT_BASE + USE_OFFSET(0x9E51C, 0x9AF1C), 0x01B0); // 0125 // 32 C0 -> B0 01
+		utils::hook::set<WORD>(p2::mod_addr__envprojectedtexture_should_update, 0x01B0); // 32 C0 -> B0 01
 
 		// CViewRender::InitFadeData :: manually set fade data and not rely on cpu_level
-		utils::hook(CLIENT_BASE + USE_OFFSET(0x1E5673, 0x1DFC33), init_fade_data_stub, HOOK_JUMP).install()->quick(); // 0125
-		HOOK_RETN_PLACE(init_fade_data_retn, CLIENT_BASE + USE_OFFSET(0x1E5699, 0x1DFC59)); // 0125
+		utils::hook(p2::hk_addr__cviewrenderer_init_fade_data, init_fade_data_stub, HOOK_JUMP).install()->quick();
+		HOOK_RETN_PLACE(init_fade_data_retn, p2::hk_addr__cviewrenderer_init_fade_data + 38u);
 
 		// C_BaseEntity::ShouldDraw :: gpu/cpu level checks for simulated entites
-		utils::hook::set<BYTE>(CLIENT_BASE + USE_OFFSET(0x6EE3D, 0x6BC2D), 0xEB); // 0125
-		utils::hook::set<BYTE>(CLIENT_BASE + USE_OFFSET(0x6EE4F, 0x6BC3F), 0xEB); // 0125
-		utils::hook::set<BYTE>(CLIENT_BASE + USE_OFFSET(0x6EE66, 0x6BC56), 0xEB); // 0125
+		utils::hook::set<BYTE>(p2::mod_addr__cbaseentity_should_draw, 0xEB); // 0x6EE3D
+		utils::hook::set<BYTE>(p2::mod_addr__cbaseentity_should_draw + 18u, 0xEB); // 0x6EE4F
+		utils::hook::set<BYTE>(p2::mod_addr__cbaseentity_should_draw + 41u, 0xEB); // 0x6EE66
 
 		// CStaticPropMgr::UpdatePropVisibility :: ignore cpu/gpu level key-value pairs on static props
-		utils::hook::set<BYTE>(ENGINE_BASE + USE_OFFSET(0x1F02D0, 0x1ED3F0), 0xEB); // 0125
-		utils::hook::set<BYTE>(ENGINE_BASE + USE_OFFSET(0x1F02FB, 0x1ED41B), 0xEB); // 0125
-		utils::hook::nop(ENGINE_BASE + USE_OFFSET(0x1F035F, 0x1ED47F), 2); // 0125
+		utils::hook::set<BYTE>(p2::mod_addr__cstaticpropmgr_update_prop_visibility, 0xEB); // 0x1F02D0
+		utils::hook::set<BYTE>(p2::mod_addr__cstaticpropmgr_update_prop_visibility + 43u, 0xEB); // 0x1F02FB
+		utils::hook::nop(p2::nop_addr__cstaticpropmgr_update_prop_visibility, 2); // 0x1F035F
 
 		// fix invisible brushmodels when using cl_brushfastpath 0 (eg. crazy_box)
 		//utils::hook::nop(CLIENT_BASE + USE_OFFSET(0x1EEF0A, 0x1E944A), 6);
