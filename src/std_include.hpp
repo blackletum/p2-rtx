@@ -81,20 +81,22 @@ constexpr auto COMP_MOD_PRE_RELEASE_NUM = 0;
 
 #include "components/globals.hpp"
 #include "game/structs.hpp"
+
 #include "utils/utils.hpp"
 #include "utils/vector.hpp"
 #include "utils/hooking.hpp"
 #include "utils/memory.hpp"
 #include "utils/function.hpp"
+
 #include "components/common/console.hpp"
 #include "components/common/loader.hpp"
+#include "game/functions.hpp"
+#include "p2.hpp"
 
 #include "sdk/engine/c_engine_client.hpp"
 #include "sdk/vgui/surface/c_surface_mgr.hpp"
 #include "sdk/inputsystem/c_input_stackstystem.hpp"
 #include "sdk/entity/c_entity_list.hpp"
-
-#include "game/functions.hpp"
-#include "p2.hpp"
+#include "sdk/cvar/cvar.hpp"
 
 using namespace std::literals;

@@ -1,4 +1,5 @@
 #pragma once
+#include "sdk/inputsystem/c_input_stackstystem.hpp"
 
 #define RENDERER_MOD			game::shaderapidx9_module
 #define STUDIORENDER_MOD		game::studiorender_module
@@ -75,8 +76,7 @@ namespace game
 	inline components::CShaderAPIDx8* get_cshaderapi() { return reinterpret_cast<components::CShaderAPIDx8*>((RENDERER_BASE + USE_OFFSET(0xD7040, 0x1769A0))); } // 0125
 	inline components::worldbrushdata_t* get_hoststate_worldbrush_data() { return reinterpret_cast<components::CCommonHostState*>(ENGINE_BASE + USE_OFFSET(0x43F028, 0x439C1C))->worldbrush; } // 0125
 	inline components::CGlobalVarsBase* get_global_vars() { return reinterpret_cast<components::CGlobalVarsBase*>(*(DWORD*)(CLIENT_BASE + USE_OFFSET(0x92A37C, 0x9220BC))); } // 0125
-	inline components::CCvar* get_icvar() { return reinterpret_cast<components::CCvar*>((VSTDLIB_BASE + USE_OFFSET(0x315B0, 0x31550))); } // 0125
-
+	
 	inline components::CStaticPropMgr* get_cstatic_prop_mgr() { return reinterpret_cast<components::CStaticPropMgr*>((ENGINE_BASE + USE_OFFSET(0x442998, 0x43D490))); } // 0125
 
 	inline Vector* get_current_view_origin() { return reinterpret_cast<Vector*>(ENGINE_BASE + USE_OFFSET(0x513380, 0x50DB50)); } // 0125
