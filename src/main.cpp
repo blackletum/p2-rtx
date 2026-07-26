@@ -105,7 +105,7 @@ namespace p2
 		get_module_handle_and_size(game::vstdlib_module, "vstdlib.dll", T);
 
 		// wait a little ..
-		Sleep(50u);
+		Sleep(250u);
 
 		p2::main();
 		return 0;

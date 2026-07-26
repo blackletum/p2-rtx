@@ -24,10 +24,15 @@ namespace p2
 
 
 	// - engine
-
+	typedef	bool(__cdecl* CM_LeafArea_t)(int leaf_num);
+	extern CM_LeafArea_t CM_LeafArea;
 
 	// - client
-	//
+	typedef	C_BaseEntity* (__cdecl* GetSplitScreenViewPlayer_t)();
+	extern GetSplitScreenViewPlayer_t GetSplitScreenViewPlayer;
+
+	typedef	void* (__cdecl* ToPortalPlayer_t)(C_BaseEntity*);
+	extern ToPortalPlayer_t ToPortalPlayer;
 
 	// - shaderapidx9
 	//

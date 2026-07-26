@@ -11,16 +11,10 @@
 #include "components/common/flags.hpp"
 #include "components/common/remix_api.hpp"
 
-// + dxlevel 100 required
-
-// commandline args:
-// -novid -disable_d3d9_hacks -limitvsconst -disallowhwmorph -softparticlesdefaultoff -no_compressed_verts +mat_phong 1
-
 // *** Useful cvars
 // r_drawmodelstatsoverlay 1		:: show model names
 // r_novis							:: 1 = disable all visleaf/node checks
 // cl_particles_show_bbox 1			:: can be used to see fx names
-
 
 namespace components
 {
@@ -123,7 +117,7 @@ namespace components
 		g_current_leaf = current_leaf;
 
 		// CM_LeafArea :: get current area the camera is in
-		g_current_area = utils::hook::call<int(__cdecl)(int leafnum)>(ENGINE_BASE + USE_OFFSET(0x15ACE0, 0x159470))(current_leaf); // 0125
+		g_current_area = p2::CM_LeafArea(current_leaf);
 
 		// fog
 		if (static bool allow_fog = !common::flags::has_flag("no_fog"); allow_fog)
@@ -141,9 +135,7 @@ namespace components
 				dev->SetRenderState(D3DRS_FOGSTART, *(DWORD*)&fog_start);
 				dev->SetRenderState(D3DRS_FOGEND, *(DWORD*)&s.fog_dist);
 				dev->SetRenderState(D3DRS_FOGCOLOR, s.fog_color);
-			}
-			else
-			{
+			} else {
 				dev->SetRenderState(D3DRS_FOGENABLE, FALSE);
 			}
 		}
@@ -169,8 +161,7 @@ namespace components
 
 		// needs portal fade-in effect fix:
 		// https://github.com/NVIDIAGameWorks/dxvk-remix/pull/83
-		if (!remix_rayportal::get()->empty())
-		{
+		if (!remix_rayportal::get()->empty()) {
 			remix_rayportal::get()->draw_all_pairs();
 		}
 	}
@@ -228,31 +219,6 @@ namespace components
 			jmp		cviewrenderer_drawonemonitor_retn;
 		}
 	}
-
-	// #
-	// #
-	
-#if 0
-	void on_cl_init_hk()
-	{
-		main_module::setup_required_cvars();
-	}
-
-	__declspec(naked) void on_cl_init_stub()
-	{
-		__asm
-		{
-			pushad;
-			call	on_cl_init_hk;
-			popad;
-
-			// og
-			mov     esp, ebp;
-			pop     ebp;
-			retn;
-		}
-	}
-#endif
 
 	// #
 	// #
@@ -429,12 +395,11 @@ namespace components
 	{
 		int player_team_num = 0;
 
-		const auto base_player = utils::hook::call<C_BaseEntity*(__cdecl)()>(CLIENT_BASE + USE_OFFSET(0x17B8B0, 0x176460))(); // 0125 // GetSplitScreenViewPlayer
+		const auto base_player = p2::GetSplitScreenViewPlayer(); //utils::hook::call<C_BaseEntity*(__cdecl)()>(CLIENT_BASE + USE_OFFSET(0x17B8B0, 0x176460))(); // 0125 // GetSplitScreenViewPlayer
 		if (base_player)
 		{
-			const auto portal_player = utils::hook::call<void* (__cdecl)(C_BaseEntity*)>(CLIENT_BASE + USE_OFFSET(0x3FEE0, 0x14BF30))(base_player); // 0125 // ToPortalPlayer
-			if (portal_player)
-			{
+			const auto portal_player = p2::ToPortalPlayer(base_player); //utils::hook::call<void* (__cdecl)(C_BaseEntity*)>(CLIENT_BASE + USE_OFFSET(0x3FEE0, 0x14BF30))(base_player); // 0125 // ToPortalPlayer
+			if (portal_player) {
 				player_team_num = base_player->m_iTeamNum;
 			}
 		}

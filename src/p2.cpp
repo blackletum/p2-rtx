@@ -36,10 +36,11 @@ namespace p2
 
 
 	// - engine
-
+	CM_LeafArea_t CM_LeafArea = nullptr;
 
 	// - client
-	//
+	GetSplitScreenViewPlayer_t GetSplitScreenViewPlayer = nullptr;
+	ToPortalPlayer_t ToPortalPlayer = nullptr;
 
 	// - shaderapidx9
 	//
@@ -110,6 +111,7 @@ namespace p2
 
 
 		// - engine - functions
+		PATTERN_OFFSET_SIMPLE_CAST(ENGINE_MOD, CM_LeafArea, CM_LeafArea_t, "55 8B EC 56 8B 75 ? 85 F6 78 ? 3B 35 ? ? ? ? 7C ? 68 ? ? ? ? FF 15 ? ? ? ? 83 C4 ? A1 ? ? ? ? 03 F6 66 8B 4C F0", 0, USE_OFFSET(0x15ACE0, 0x159470));
 
 
 		// - engine - asm
@@ -120,9 +122,12 @@ namespace p2
 
 
 		// - client - functions
-		//
+		PATTERN_OFFSET_SIMPLE_CAST(CLIENT_MOD, GetSplitScreenViewPlayer, GetSplitScreenViewPlayer_t, "8B 0D ? ? ? ? ? ? 8B 90 ? ? ? ? FF D2 50 E8 ? ? ? ? 83 C4 ? C3", 0, USE_OFFSET(0x17B8B0, 0x176460));
+		PATTERN_OFFSET_SIMPLE_CAST(CLIENT_MOD, ToPortalPlayer, ToPortalPlayer_t, "55 8B EC 56 8B 75 ? 85 F6 74 ? ? ? 8B 90 ? ? ? ? 8B CE FF D2 84 C0 74 ? 8B C6", 0, USE_OFFSET(0x3FEE0, 0x14BF30));
+
 
 		// - client - asm
+		
 
 
 		// --------------------------
