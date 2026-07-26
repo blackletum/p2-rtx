@@ -34,8 +34,6 @@ namespace p2
 		common::loader::module_loader::register_module(std::make_unique<model_render>());
 		common::loader::module_loader::register_module(std::make_unique<main_module>());
 
-		game_settings::delayed_init();
-
 		MH_EnableHook(MH_ALL_HOOKS);
 	}
 }

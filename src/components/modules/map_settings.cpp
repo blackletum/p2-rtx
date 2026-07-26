@@ -8,7 +8,7 @@
 #include "remix_rayportal.hpp"
 #include "components/common/flags.hpp"
 #include "components/common/remix_api.hpp"
-#include "components/common/toml.hpp"
+#include "components/common/toml_ext.hpp"
 #include "toml11/parser.hpp"
 
 namespace components
@@ -1473,11 +1473,11 @@ namespace components
 
 			file << "[CULL]\n";
 			auto& areas = map_settings::get_map_settings().area_settings;
-			file << "    " << common::toml::build_culling_overrides_string_for_current_map(areas) << "\n\n";
+			file << "    " << common::toml_ext::build_culling_overrides_string_for_current_map(areas) << "\n\n";
 
 			file << "[MARKER]\n";
 			auto& markers = map_settings::get_map_settings().map_markers;
-			file << "    " << common::toml::build_map_marker_string_for_current_map(markers) << "\n\n";
+			file << "    " << common::toml_ext::build_map_marker_string_for_current_map(markers) << "\n\n";
 
 			file << "[LIGHTS]\n";
 			const auto lights = remix_lights::get();
@@ -1489,7 +1489,7 @@ namespace components
 					temp_def.points = edit_light->m_mover.get_points_vec();
 				}
 
-				file << "    " << common::toml::build_light_string_for_single_light(temp_def) << "\n\n";
+				file << "    " << common::toml_ext::build_light_string_for_single_light(temp_def) << "\n\n";
 			}
 
 			file.close();

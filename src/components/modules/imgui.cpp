@@ -4,7 +4,6 @@
 #include "game_settings.hpp"
 #include "choreo_events.hpp"
 #include "components/common/imgui/imgui_helper.hpp"
-#include "components/common/toml.hpp"
 #include "components/common/imgui/font_awesome_solid_900.hpp"
 #include "components/common/imgui/font_defines.hpp"
 #include "components/common/imgui/font_opensans.hpp"
@@ -16,6 +15,7 @@
 #include "model_render.hpp"
 #include "remix_lights.hpp"
 #include "sound_events.hpp"
+#include "components/common/toml_ext.hpp"
 
 // Allow us to directly call the ImGui WndProc function.
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM, LPARAM);
@@ -26,6 +26,9 @@ extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM, LPARAM);
 
 #define SET_CHILD_WIDGET_WIDTH			ImGui::SetNextItemWidth(ImGui::CalcWidgetWidthForChild(80.0f));
 #define SET_CHILD_WIDGET_WIDTH_MAN(V)	ImGui::SetNextItemWidth(ImGui::CalcWidgetWidthForChild((V)));
+
+#define CHILD_WIDGET_WIDTH 180.0f
+#define CWIDGETWIDTH SET_CHILD_WIDGET_WIDTH_MAN(CHILD_WIDGET_WIDTH);
 
 namespace components
 {
@@ -773,7 +776,7 @@ namespace components
 		if (ImGui::Button("Copy All Markers to Clipboard   " ICON_FA_SAVE, ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, 0)))
 		{
 			ImGui::LogToClipboard();
-			ImGui::LogText("%s", common::toml::build_map_marker_string_for_current_map(markers).c_str());
+			ImGui::LogText("%s", common::toml_ext::build_map_marker_string_for_current_map(markers).c_str());
 			ImGui::LogFinish();
 		} ImGui::PopFont();
 
@@ -1079,7 +1082,7 @@ namespace components
 		if (ImGui::Button("Copy Settings to Clipboard   " ICON_FA_SAVE "##Cull", ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, 0)))
 		{
 			ImGui::LogToClipboard();
-			ImGui::LogText("%s", common::toml::build_culling_overrides_string_for_current_map(areas).c_str());
+			ImGui::LogText("%s", common::toml_ext::build_culling_overrides_string_for_current_map(areas).c_str());
 			ImGui::LogFinish();
 		} ImGui::PopFont();
 
@@ -2258,7 +2261,7 @@ namespace components
 				}
 
 				ImGui::LogToClipboard();
-				ImGui::LogText("%s", common::toml::build_light_string_for_single_light(temp_def).c_str());
+				ImGui::LogText("%s", common::toml_ext::build_light_string_for_single_light(temp_def).c_str());
 				ImGui::LogFinish();
 			}
 		} ImGui::PopFont();
@@ -3105,7 +3108,7 @@ namespace components
 						}
 
 						ImGui::LogToClipboard();
-						ImGui::LogText("%s", common::toml::build_light_string_for_single_light(temp_def).c_str());
+						ImGui::LogText("%s", common::toml_ext::build_light_string_for_single_light(temp_def).c_str());
 						ImGui::LogFinish();
 					}
 				} ImGui::PopFont();
@@ -3404,7 +3407,7 @@ namespace components
 	// #
 	// #
 
-	void compsettings_var_reset_logic(game_settings::variable& var)
+	void gamesettings_var_reset_logic(game_settings::variable& var)
 	{
 		std::string popup_id = "Reset "s + var.m_name + " ?";
 
@@ -3415,7 +3418,7 @@ namespace components
 			}
 		}
 
-		ImGui::SetNextWindowSize(ImVec2(300.0f, 140.0f));
+		ImGui::SetNextWindowSize(ImVec2(400.0f, 160.0f));
 		if (ImGui::BeginPopupModal(popup_id.c_str(), nullptr, ImGuiWindowFlags_NoSavedSettings))
 		{
 			ImGui::Spacing(0.0f, 0.0f);
@@ -3430,16 +3433,28 @@ namespace components
 			ImGui::Spacing(0, 8);
 			ImGui::Spacing(0, 0); ImGui::SameLine();
 
-			const auto half_width = ImGui::GetContentRegionMax().x * 0.5f;
+			const auto xpos = ImGui::GetCursorPosX();
+			ImGui::BeginGroup();
+
+			const auto half_width = ImGui::GetContentRegionAvail().x * 0.5f;
 			ImVec2 button_size(half_width - (ImGui::GetStyle().WindowPadding.x * 2.0f) - ImGui::GetStyle().ItemSpacing.x, 0.0f);
-			if (ImGui::Button("Yes", button_size))
+			if (ImGui::Button("Back To Saved", button_size))
 			{
-				var.reset();
+				var.reset_base();
 				ImGui::CloseCurrentPopup();
-			}
+			} TT("Restores setting to value stored in your game_settings.toml file.");
 
 			ImGui::SameLine();
-			if (ImGui::Button("Cancel", button_size)) {
+			if (ImGui::Button("Back To Default", button_size))
+			{
+				var.reset_default();
+				ImGui::CloseCurrentPopup();
+			} TT("Restores setting to the default value defined by the compatibility mod.");
+			ImGui::EndGroup();
+			const auto group_width = ImGui::GetItemRectSize().x;
+
+			ImGui::SetCursorPosX(xpos);
+			if (ImGui::Button("Cancel", ImVec2(group_width, 0))) {
 				ImGui::CloseCurrentPopup();
 			}
 
@@ -3447,26 +3462,106 @@ namespace components
 		}
 	}
 
-	bool compsettings_bool_widget(const char* desc, game_settings::variable& var)
+	bool gamesettings_bool_widget(const char* desc, game_settings::variable& var)
 	{
+		CWIDGETWIDTH;
+
+		const bool colorize = var.get_temp_override_state() || var.get_dirty_state();
+		if (colorize) {
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.6f, 0.4f, 0.15f, 1.0f));
+		}
+
+		ImGui::BeginDisabled(var.get_temp_override_state());
+
 		const auto gs_var_ptr = var.get_as<bool*>();
 		const bool result = ImGui::Checkbox(desc, gs_var_ptr);
+
+		if (result) {
+			var.set_dirty(false);
+		}
+
 		TT(var.get_tooltip_string().c_str());
-		compsettings_var_reset_logic(var);
+		gamesettings_var_reset_logic(var);
+
+		if (colorize) {
+			ImGui::PopStyleColor();
+		}
+
+		ImGui::EndDisabled();
 		return result;
 	}
 
-	bool compsettings_float_widget(const char* desc, game_settings::variable& var, const float& min = 0.0f, const float& max = 0.0f, const float& speed = 0.02f)
+	bool gamesettings_int_widget(const char* desc, game_settings::variable& var, const int& min = 0, const int& max = 0, const float& speed = 0.02f)
 	{
+		CWIDGETWIDTH;
+
+		const bool colorize = var.get_temp_override_state() || var.get_dirty_state();
+		if (colorize) {
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.6f, 0.4f, 0.15f, 1.0f));
+		}
+
+		ImGui::BeginDisabled(var.get_temp_override_state());
+
+		const auto gs_var_ptr = var.get_as<int*>();
+		const bool result = ImGui::DragInt(desc, gs_var_ptr, speed, min, max, "%d", (min != 0 || max != 0) ? ImGuiSliderFlags_AlwaysClamp : ImGuiSliderFlags_None);
+
+		if (result) {
+			var.set_dirty(false);
+		}
+
+		TT(var.get_tooltip_string().c_str());
+		gamesettings_var_reset_logic(var);
+
+		if (colorize) {
+			ImGui::PopStyleColor();
+		}
+
+		ImGui::EndDisabled();
+
+		return result;
+	}
+
+	bool gamesettings_float_widget(const char* desc, game_settings::variable& var, const float& min = 0.0f, const float& max = 0.0f, const float& speed = 0.02f, const char* fmt = "%.2f")
+	{
+		CWIDGETWIDTH;
+
+		const bool colorize = var.get_temp_override_state() || var.get_dirty_state();
+		if (colorize) {
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.6f, 0.4f, 0.15f, 1.0f));
+		}
+
+		ImGui::BeginDisabled(var.get_temp_override_state());
+
 		const auto gs_var_ptr = var.get_as<float*>();
-		const bool result = ImGui::DragFloat(desc, gs_var_ptr, speed, min, max, "%.2f", (min != 0.0f || max != 0.0f) ? ImGuiSliderFlags_AlwaysClamp : ImGuiSliderFlags_None);
+		const bool result = ImGui::DragFloat(desc, gs_var_ptr, speed, min, max, fmt, (min != 0.0f || max != 0.0f) ? ImGuiSliderFlags_AlwaysClamp : ImGuiSliderFlags_None);
+
+		if (result) {
+			var.set_dirty(false);
+		}
+
 		TT(var.get_tooltip_string().c_str());
-		compsettings_var_reset_logic(var);
+		gamesettings_var_reset_logic(var);
+
+		if (colorize) {
+			ImGui::PopStyleColor();
+		}
+
+		ImGui::EndDisabled();
+
 		return result;
 	}
 
-	bool compsettings_vec_widget(const char* desc, game_settings::variable& var, const int& size, const float& min = 0.0f, const float& max = 0.0f, const float& speed = 0.02f)
+	bool gamesettings_vec_widget(const char* desc, game_settings::variable& var, const int& size, const float& min = 0.0f, const float& max = 0.0f, const float& speed = 0.02f)
 	{
+		CWIDGETWIDTH;
+
+		const bool colorize = var.get_temp_override_state() || var.get_dirty_state();
+		if (colorize) {
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.6f, 0.4f, 0.15f, 1.0f));
+		}
+
+		ImGui::BeginDisabled(var.get_temp_override_state());
+
 		const auto cs_var_ptr = var.get_as<float*>();
 		bool result = false;
 		switch (size)
@@ -3488,13 +3583,33 @@ namespace components
 			break;
 		}
 
+		if (result) {
+			var.set_dirty(false);
+		}
+
 		TT(var.get_tooltip_string().c_str());
-		compsettings_var_reset_logic(var);
+		gamesettings_var_reset_logic(var);
+
+		if (colorize) {
+			ImGui::PopStyleColor();
+		}
+
+		ImGui::EndDisabled();
+
 		return result;
 	}
 
-	bool compsettings_color_widget(const char* desc, game_settings::variable& var, const int& size, const ImGuiColorEditFlags_& flags)
+	bool gamesettings_color_widget(const char* desc, game_settings::variable& var, const int& size, const ImGuiColorEditFlags_& flags)
 	{
+		CWIDGETWIDTH;
+
+		const bool colorize = var.get_temp_override_state() || var.get_dirty_state();
+		if (colorize) {
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.6f, 0.4f, 0.15f, 1.0f));
+		}
+
+		ImGui::BeginDisabled(var.get_temp_override_state());
+
 		const auto cs_var_ptr = var.get_as<float*>();
 		bool result = false;
 
@@ -3512,8 +3627,18 @@ namespace components
 			break;
 		}
 
+		if (result) {
+			var.set_dirty(false);
+		}
+
 		TT(var.get_tooltip_string().c_str());
-		compsettings_var_reset_logic(var);
+		gamesettings_var_reset_logic(var);
+
+		if (colorize) {
+			ImGui::PopStyleColor();
+		}
+
+		ImGui::EndDisabled();
 		return result;
 	}
 
@@ -3547,7 +3672,7 @@ namespace components
 	{
 		ImGui::PushFont(common::imgui::font::BOLD);
 		if (ImGui::Button("Save Current Settings    " ICON_FA_SAVE, ImVec2(ImGui::GetContentRegionAvail().x * 0.5f, 0))) {
-			game_settings::write_toml();
+			game_settings::write_game_settings_toml();
 		} ImGui::PopFont();
 
 		ImGui::SameLine();
@@ -3605,37 +3730,34 @@ namespace components
 	void cont_gamesettings_renderer_settings()
 	{
 		const auto gs = game_settings::get();
-		compsettings_bool_widget("Enable LOD Forcing", gs->lod_forcing);
-		compsettings_bool_widget("Force Graphic Settings", gs->force_graphic_settings);
-		compsettings_bool_widget("Portal Visibility Culling", gs->portal_visibility_culling);
-		compsettings_bool_widget("Check Nodes (Visleafs) For Potential Lights", gs->check_nodes_for_potential_lights);
-		compsettings_bool_widget("Spotlight Billboard Spawning", gs->spotlight_billboard_spawning);
-		compsettings_bool_widget("Use Brush(model) Fast Path", gs->use_brushfastpath);
+		gamesettings_bool_widget("Enable LOD Forcing", gs->lod_forcing);
+		gamesettings_bool_widget("Force Graphic Settings", gs->force_graphic_settings);
+		gamesettings_bool_widget("Portal Visibility Culling", gs->portal_visibility_culling);
+		gamesettings_bool_widget("Check Nodes (Visleafs) For Potential Lights", gs->check_nodes_for_potential_lights);
+		gamesettings_bool_widget("Spotlight Billboard Spawning", gs->spotlight_billboard_spawning);
+		gamesettings_bool_widget("Use Brush(model) Fast Path", gs->use_brushfastpath);
 
 		ImGui::Spacing(0, 4);
-		compsettings_float_widget("VGUI Progress Board Emissive Offset", gs->vgui_progress_board_emissive_offset, 0.0f, 20.0f);
-		compsettings_float_widget("BIK Emissive Intensity", gs->bik_emissive_intensity, 0.0f, 20.0f);
+		gamesettings_float_widget("VGUI Progress Board Emissive Offset", gs->vgui_progress_board_emissive_offset, 0.0f, 20.0f);
+		gamesettings_float_widget("BIK Emissive Intensity", gs->bik_emissive_intensity, 0.0f, 20.0f);
 
 		ImGui::Spacing(0, 8);
 		ImGui::SeparatorText("  Emancipationgrill  ");
 		ImGui::Spacing(0, 4);
 
 		ImGui::PushID("Emanci");
-		compsettings_bool_widget("Emissive Proxy", gs->emancipationgrill_emissive_proxy_old);
-		compsettings_bool_widget("Alpha Modulate1X", gs->emancipationgrill_alpha_modulate1x);
-		compsettings_bool_widget("Alpha Modulate2X", gs->emancipationgrill_alpha_modulate2x);
-		compsettings_bool_widget("Alpha Modulate4X", gs->emancipationgrill_alpha_modulate4x);
-		compsettings_bool_widget("Force Emissive", gs->emancipationgrill_force_emissive);
-		compsettings_float_widget("Emissive Scale", gs->emancipationgrill_emissive_scale, 0.0f, 200.0f);
-		compsettings_vec_widget("Color Scalar Center", gs->emancipationgrill_color_scalar_center, 4, 0.0f, 2.0f);
-		compsettings_vec_widget("Color Scalar SideEmitters", gs->emancipationgrill_color_scalar_side_emitters, 4, 0.0f, 2.0f);
+		gamesettings_bool_widget("Emissive Proxy", gs->emancipationgrill_emissive_proxy_old);
+		gamesettings_bool_widget("Alpha Modulate1X", gs->emancipationgrill_alpha_modulate1x);
+		gamesettings_bool_widget("Alpha Modulate2X", gs->emancipationgrill_alpha_modulate2x);
+		gamesettings_bool_widget("Alpha Modulate4X", gs->emancipationgrill_alpha_modulate4x);
+		gamesettings_bool_widget("Force Emissive", gs->emancipationgrill_force_emissive);
+		gamesettings_float_widget("Emissive Scale", gs->emancipationgrill_emissive_scale, 0.0f, 200.0f);
+		gamesettings_vec_widget("Color Scalar Center", gs->emancipationgrill_color_scalar_center, 4, 0.0f, 2.0f);
+		gamesettings_vec_widget("Color Scalar SideEmitters", gs->emancipationgrill_color_scalar_side_emitters, 4, 0.0f, 2.0f);
 		ImGui::PopID();
 
 		ImGui::Spacing(0, 6);
 
-
-		
-		
 		/*if (ImGui::Checkbox("Enable 3D Skybox (very unstable)", gs->enable_3d_sky.get_as<bool*>())) {
 			remix_vars::set_option(remix_vars::get_option("rtx.skyAutoDetect"), remix_vars::string_to_option_value(remix_vars::OPTION_TYPE_FLOAT, gs->enable_3d_sky.get_as<bool>() ? "1" : "0"));
 		}
@@ -3650,10 +3772,9 @@ namespace components
 		}
 		TT(gs->default_nocull_distance.get_tooltip_string().c_str());
 
-		compsettings_float_widget("Debug Info Distance", gs->debug_info_distance, 0.0f, 0.0f, 0.1f);
-		compsettings_float_widget("Player Backwards Offset", gs->player_backwards_offset, 0.0f, 0.0f, 0.01f);
-
-		compsettings_bool_widget("Enable Dual Layered Water", gs->enable_dual_layered_water);
+		gamesettings_float_widget("Debug Info Distance", gs->debug_info_distance, 0.0f, 0.0f, 0.1f);
+		gamesettings_float_widget("Player Backwards Offset", gs->player_backwards_offset, 0.0f, 0.0f, 0.01f);
+		gamesettings_bool_widget("Enable Dual Layered Water", gs->enable_dual_layered_water);
 	}
 
 	void imgui::tab_game_settings()

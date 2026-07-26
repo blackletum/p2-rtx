@@ -19,12 +19,15 @@ namespace components
 			return false;
 		}
 
-		static void write_toml();
+		static void write_game_settings_toml();
 		static bool parse_toml();
 
 		static void xo_gamesettings_update_fn();
-		static void delayed_init();
 
+	private:
+		bool m_initialized = false;
+
+	public:
 		union var_value
 		{
 			bool boolean;
@@ -46,48 +49,48 @@ namespace components
 		{
 		public:
 			// bool
-			variable(const char* name, const char* desc, const bool boolean) :
-				m_name(name), m_desc(desc), m_type(var_type_boolean)
+			variable(const char* name, const char* desc, const char* version, const bool boolean) :
+				m_name(name), m_desc(desc), m_version(utils::version_t::from_string(version)), m_type(var_type_boolean)
 			{
 				m_var.boolean = boolean;
 				m_var_default.boolean = boolean;
 			}
 
 			// int
-			variable(const char* name, const char* desc, const int integer) :
-				m_name(name), m_desc(desc), m_type(var_type_integer)
+			variable(const char* name, const char* desc, const char* version, const int integer) :
+				m_name(name), m_desc(desc), m_version(utils::version_t::from_string(version)), m_type(var_type_integer)
 			{
 				m_var.integer = integer;
 				m_var_default.integer = integer;
 			}
 
 			// float
-			variable(const char* name, const char* desc, const float value) :
-				m_name(name), m_desc(desc), m_type(var_type_value)
+			variable(const char* name, const char* desc, const char* version, const float value) :
+				m_name(name), m_desc(desc), m_version(utils::version_t::from_string(version)), m_type(var_type_value)
 			{
 				m_var.value[0] = value;
 				m_var_default.value[0] = value;
 			}
 
 			// vec2
-			variable(const char* name, const char* desc, const float x, const float y) :
-				m_name(name), m_desc(desc), m_type(var_type_vec2)
+			variable(const char* name, const char* desc, const char* version, const float x, const float y) :
+				m_name(name), m_desc(desc), m_version(utils::version_t::from_string(version)), m_type(var_type_vec2)
 			{
 				m_var.value[0] = x; m_var.value[1] = y;
 				m_var_default.value[0] = x; m_var_default.value[1] = y;
 			}
 
 			// vec3
-			variable(const char* name, const char* desc, const float x, const float y, const float z) :
-				m_name(name), m_desc(desc), m_type(var_type_vec3)
+			variable(const char* name, const char* desc, const char* version, const float x, const float y, const float z) :
+				m_name(name), m_desc(desc), m_version(utils::version_t::from_string(version)), m_type(var_type_vec3)
 			{
 				m_var.value[0] = x; m_var.value[1] = y; m_var.value[2] = z;
 				m_var_default.value[0] = x; m_var_default.value[1] = y; m_var_default.value[2] = z;
 			}
 
 			// vec4
-			variable(const char* name, const char* desc, const float x, const float y, const float z, const float w) :
-				m_name(name), m_desc(desc), m_type(var_type_vec4)
+			variable(const char* name, const char* desc, const char* version, const float x, const float y, const float z, const float w) :
+				m_name(name), m_desc(desc), m_version(utils::version_t::from_string(version)), m_type(var_type_vec4)
 			{
 				m_var.value[0] = x; m_var.value[1] = y; m_var.value[2] = z; m_var.value[3] = w;
 				m_var_default.value[0] = x; m_var_default.value[1] = y; m_var_default.value[2] = z; m_var_default.value[3] = w;
@@ -148,65 +151,90 @@ namespace components
 				return nullptr;
 			}
 
+			std::string get_ver_string() const {
+				return std::format("{}.{}.{}", this->m_version.major, this->m_version.minor, this->m_version.patch);
+			}
+
 			std::string get_tooltip_string() const
 			{
 				std::string out;
-				out += "# " + std::string(this->m_desc) + "\n";
-				out += "# Type: " + std::string(this->get_str_type()) + " || Default: " + std::string(this->get_str_value(true));
+
+				const auto desc_lines = utils::split(std::string(this->m_desc), '\n');
+				for (const auto& line : desc_lines) {
+					out += "# " + line + "\n";
+				}
+
+				out += "# Type: " + std::string(this->get_str_type()) + " || Default: " + std::string(this->get_str_value(true)) + "\n";
+				out += "# Name: '" + std::string(this->m_name) + "'\n\n";
+				out += "> Use [MIDDLE MOUSE] to RESET to default values.";
+
+				const auto is_dirty = this->get_dirty_state();
+				const auto has_override = this->get_temp_override_state();
+
+				if (is_dirty || has_override) {
+					out += "\n";
+				}
+
+				if (is_dirty) {
+					out += "\n! DIRTY - Modified by ADDON_SETTINGS file. Value ignored when saving !";
+				}
+
+				if (has_override)
+				{
+					out += "\n! Temporary Override Active. Changes are not reflected until override is disabled !";
+					out += "\n! -> " + this->m_temp_override_comment + " !";
+				}
+
 				return out;
 			}
 
 			const bool& _bool(const bool default_value = false) const
 			{
+				auto& var = get_temp_override_state() ? m_var_temp_override : m_var;
 				assert(m_type == var_type_boolean && "Type mismatch: expected boolean");
-				return !default_value ? m_var.boolean : m_var_default.boolean;
+				return !default_value ? var.boolean : m_var_default.boolean;
 			}
 
 			const bool* _bool_ptr(const bool default_value = false)
 			{
+				auto& var = get_temp_override_state() ? m_var_temp_override : m_var;
 				assert(m_type == var_type_boolean && "Type mismatch: expected boolean");
-				return &(!default_value ? m_var.boolean : m_var_default.boolean);
+				return &(!default_value ? var.boolean : m_var_default.boolean);
+			}
+
+			const int& _int(const bool default_value = false) const
+			{
+				auto& var = get_temp_override_state() ? m_var_temp_override : m_var;
+				assert(m_type == var_type_integer && "Type mismatch: expected int");
+				return !default_value ? var.integer : m_var_default.integer;
+			}
+
+			const int* _int_ptr(const bool default_value = false)
+			{
+				auto& var = get_temp_override_state() ? m_var_temp_override : m_var;
+				assert(m_type == var_type_integer && "Type mismatch: expected int");
+				return &(!default_value ? var.integer : m_var_default.integer);
 			}
 
 			const float& _float(const bool default_value = false) const
 			{
+				auto& var = get_temp_override_state() ? m_var_temp_override : m_var;
 				assert(m_type == var_type_value && "Type mismatch: expected float");
-				return !default_value ? m_var.value[0] : m_var_default.value[0];
+				return !default_value ? var.value[0] : m_var_default.value[0];
 			}
 
 			const float* _float_ptr(const bool default_value = false)
 			{
+				auto& var = get_temp_override_state() ? m_var_temp_override : m_var;
 				assert(m_type == var_type_value && "Type mismatch: expected float");
-				return !default_value ? m_var.value : m_var_default.value;
-			}
-
-			const float& _vec_x(const bool default_value = false) const
-			{
-				assert(((m_type == var_type_vec2) || (m_type == var_type_vec3) || (m_type == var_type_vec4)) && "Type mismatch: expected vec2, vec3 or vec4");
-				return !default_value ? m_var.value[0] : m_var_default.value[0];
-			}
-
-			const float& _vec_y(const bool default_value = false) const
-			{
-				assert(((m_type == var_type_vec2) || (m_type == var_type_vec3) || (m_type == var_type_vec4)) && "Type mismatch: expected vec2, vec3 or vec4");
-				return !default_value ? m_var.value[1] : m_var_default.value[1];
-			}
-
-			const float& _vec_z(const bool default_value = false) const
-			{
-				assert(((m_type == var_type_vec3) || (m_type == var_type_vec4)) && "Type mismatch: expected vec2, vec3 or vec4");
-				return !default_value ? m_var.value[2] : m_var_default.value[2];
-			}
-
-			const float& _vec_w(const bool default_value = false) const
-			{
-				assert(m_type == var_type_vec4 && "Type mismatch: expected vec2, vec3 or vec4");
-				return !default_value ? m_var.value[3] : m_var_default.value[3];
+				return !default_value ? var.value : m_var_default.value;
 			}
 
 			template <typename T>
 			T get_as(bool default_val = false)
 			{
+				auto& var = get_temp_override_state() ? m_var_temp_override : m_var;
+
 				// if T is a pointer type, return a ptr
 				if constexpr (std::is_pointer_v<T>)
 				{
@@ -215,33 +243,33 @@ namespace components
 
 					if constexpr (std::is_same_v<base_type, bool>) {
 						assert(m_type == var_type_boolean && "Type mismatch: expected boolean");
-						return &(!default_val ? m_var.boolean : m_var_default.boolean);
+						return &(!default_val ? var.boolean : m_var_default.boolean);
 					}
 					else if constexpr (std::is_same_v<base_type, int>) {
 						assert(m_type == var_type_integer && "Type mismatch: expected integer");
-						return &(!default_val ? m_var.integer : m_var_default.integer);
+						return &(!default_val ? var.integer : m_var_default.integer);
 					}
 					else if constexpr (std::is_same_v<base_type, float>) {
 						if (m_type == var_type_value) {
-							return &(!default_val ? m_var.value[0] : m_var_default.value[0]);
+							return &(!default_val ? var.value[0] : m_var_default.value[0]);
 						}
 						if (m_type >= var_type_vec2 && m_type <= var_type_vec4) {
-							return !default_val ? m_var.value : m_var_default.value;
+							return !default_val ? var.value : m_var_default.value;
 						}
 						assert(false && "Type mismatch: expected float or vector type");
 						return nullptr;
 					}
 					else if constexpr (std::is_same_v<base_type, Vector2D>) {
 						assert(m_type == var_type_vec2 && "Type mismatch: expected vec2 for Vector");
-						return reinterpret_cast<Vector2D*>(!default_val ? m_var.value : m_var_default.value);
+						return reinterpret_cast<Vector2D*>(!default_val ? var.value : m_var_default.value);
 					}
 					else if constexpr (std::is_same_v<base_type, Vector>) {
 						assert(m_type == var_type_vec3 && "Type mismatch: expected vec3 for Vector");
-						return reinterpret_cast<Vector*>(!default_val ? m_var.value : m_var_default.value);
+						return reinterpret_cast<Vector*>(!default_val ? var.value : m_var_default.value);
 					}
 					else if constexpr (std::is_same_v<base_type, Vector4D>) {
 						assert(m_type == var_type_vec4 && "Type mismatch: expected vec4 for Vector");
-						return reinterpret_cast<Vector4D*>(!default_val ? m_var.value : m_var_default.value);
+						return reinterpret_cast<Vector4D*>(!default_val ? var.value : m_var_default.value);
 					}
 					else {
 						static_assert(std::is_same_v<T, void>, "Unsupported pointer type in get_as");
@@ -253,27 +281,27 @@ namespace components
 				{
 					if constexpr (std::is_same_v<T, bool>) {
 						assert(m_type == var_type_boolean && "Type mismatch: expected boolean");
-						return static_cast<T>(!default_val ? m_var.boolean : m_var_default.boolean);
+						return static_cast<T>(!default_val ? var.boolean : m_var_default.boolean);
 					}
 					else if constexpr (std::is_same_v<T, int>) {
 						assert(m_type == var_type_integer && "Type mismatch: expected integer");
-						return static_cast<T>(!default_val ? m_var.integer : m_var_default.integer);
+						return static_cast<T>(!default_val ? var.integer : m_var_default.integer);
 					}
 					else if constexpr (std::is_same_v<T, float>) {
 						assert(m_type == var_type_value && "Type mismatch: expected float");
-						return static_cast<T>(!default_val ? m_var.value[0] : m_var_default.value[0]);
+						return static_cast<T>(!default_val ? var.value[0] : m_var_default.value[0]);
 					}
 					else if constexpr (std::is_same_v<T, Vector2D>) {
 						assert(m_type == var_type_vec2 && "Type mismatch: expected vec2 for Vector");
-						return Vector2D(!default_val ? m_var.value : m_var_default.value);
+						return Vector2D(!default_val ? var.value : m_var_default.value);
 					}
 					else if constexpr (std::is_same_v<T, Vector>) {
 						assert(m_type == var_type_vec3 && "Type mismatch: expected vec3 for Vector");
-						return Vector(!default_val ? m_var.value : m_var_default.value);
+						return Vector(!default_val ? var.value : m_var_default.value);
 					}
 					else if constexpr (std::is_same_v<T, Vector4D>) {
 						assert(m_type == var_type_vec4 && "Type mismatch: expected vec4 for Vector");
-						return Vector4D(!default_val ? m_var.value : m_var_default.value);
+						return Vector4D(!default_val ? var.value : m_var_default.value);
 					}
 					else {
 						static_assert(std::is_same_v<T, void>, "Unsupported return type in get_as");
@@ -286,78 +314,137 @@ namespace components
 				return m_type;
 			}
 
-			// sets var and writes toml (bool)
+			void set_base_user_from_current() {
+				m_var_base_user = m_var;
+			}
+
+			/// sets var (bool) - only writes toml if temp_override is not active
+			/// @param boolean			state
+			/// @param no_toml_update	disable toml writing if false
 			void set_var(const bool boolean, bool no_toml_update = false)
 			{
-				m_var.boolean = boolean;
-				if (!no_toml_update) {
-					write_toml();
+				auto& var = m_temp_override_enabled ? m_var_temp_override : m_var;
+				var.boolean = boolean;
+
+				if (!no_toml_update && !m_temp_override_enabled) {
+					write_game_settings_toml();
 				}
 			}
 
-			// sets var and writes toml (integer)
+			/// sets var (integer) - only writes toml if temp_override is not active
+			/// @param integer			state
+			/// @param no_toml_update	disable toml writing if false
 			void set_var(const int integer, bool no_toml_update = false)
 			{
-				m_var.integer = integer;
-				if (!no_toml_update) {
-					write_toml();
+				auto& var = m_temp_override_enabled ? m_var_temp_override : m_var;
+				var.integer = integer;
+
+				if (!no_toml_update && !m_temp_override_enabled) {
+					write_game_settings_toml();
 				}
 			}
 
-			// sets var and writes toml (float)
+			/// sets var (float) - only writes toml if temp_override is not active
+			/// @param value			value
+			/// @param no_toml_update	disable toml writing if false
 			void set_var(const float value, bool no_toml_update = false)
 			{
-				m_var.value[0] = value;
-				if (!no_toml_update) {
-					write_toml();
+				auto& var = m_temp_override_enabled ? m_var_temp_override : m_var;
+				var.value[0] = value;
+
+				if (!no_toml_update && !m_temp_override_enabled) {
+					write_game_settings_toml();
 				}
 			}
 
-			// sets var and writes toml (vec4)
+			/// sets var (vec1 - vec4) - only writes toml if temp_override is not active
+			/// @param v				vector
+			/// @param no_toml_update	disable toml writing if false
 			void set_vec(const float* v, bool no_toml_update = false)
 			{
+				auto& var = m_temp_override_enabled ? m_var_temp_override : m_var;
+
 				switch (m_type)
 				{
 				default:
 					break;
 
 				case var_type_value:
-					m_var.value[0] = v[0];
+					var.value[0] = v[0];
 					break;
 
 				case var_type_vec2:
-					m_var.value[0] = v[0]; m_var.value[1] = v[1];
+					var.value[0] = v[0]; var.value[1] = v[1];
 					break;
 
 				case var_type_vec3:
-					m_var.value[0] = v[0]; m_var.value[1] = v[1]; m_var.value[2] = v[2];
+					var.value[0] = v[0]; var.value[1] = v[1]; var.value[2] = v[2];
 					break;
 
 				case var_type_vec4:
-					m_var.value[0] = v[0]; m_var.value[1] = v[1]; m_var.value[2] = v[2]; m_var.value[3] = v[3];
+					var.value[0] = v[0]; var.value[1] = v[1]; var.value[2] = v[2]; var.value[3] = v[3];
 					break;
 				}
 
-				if (!no_toml_update) {
-					write_toml();
+				if (!no_toml_update && !m_temp_override_enabled) {
+					write_game_settings_toml();
 				}
 			}
 
-			void reset() {
+			bool get_dirty_state() const {
+				return m_dirty;
+			}
+
+			void set_dirty(const bool state) {
+				m_dirty = state;
+			}
+
+			bool get_temp_override_state() const {
+				return m_temp_override_enabled;
+			}
+
+			void set_temp_override_state(const bool state, const char* comment = "")
+			{
+				// only update comment on actual change
+				if (state != m_temp_override_enabled) {
+					m_temp_override_comment = comment;
+				}
+
+				m_temp_override_enabled = state;
+			}
+
+			// reset setting to base user
+			void reset_base()
+			{
+				m_var = m_var_base_user;
+				m_dirty = false;
+				m_temp_override_enabled = false;
+			}
+
+			// reset setting to default settings
+			void reset_default()
+			{
 				m_var = m_var_default;
+				m_dirty = false;
+				m_temp_override_enabled = false;
 			}
 
 			const char* m_name;
 			const char* m_desc;
+			utils::version_t m_version;
 
 		private:
 			var_value m_var;
+			var_value m_var_base_user;
 			var_value m_var_default;
 			var_type m_type;
-		};
 
-	private:
-		bool m_initialized = false;
+			// not in constructor
+			var_value m_var_temp_override = {};
+			std::string m_temp_override_comment;
+			bool m_temp_override_enabled = false;
+			bool m_dirty = false;
+		};
 
 		struct var_definitions
 		{
@@ -365,6 +452,7 @@ namespace components
 			{
 				"lod_forcing",
 				"The mod normally forces LOD0 for everything. Setting this to false disables that.",
+				"2.4.0",
 				true
 			};
 
@@ -372,6 +460,7 @@ namespace components
 			{
 				"force_graphic_settings",
 				"This forces required graphic settings (Shader/Effect etc.)",
+				"2.4.0",
 				true
 			};
 
@@ -380,6 +469,7 @@ namespace components
 				"default_nocull_distance",
 				("The default distance (radius around player) where nothing will get culled.\n"
 				 "# Value is only used by certain anti-culling modes & if there isn't a manual area/leaf override via a MapSettings entry."),
+				"2.4.0",
 				1500.00f
 			};
 
@@ -387,6 +477,7 @@ namespace components
 			{
 				"portal_visibility_culling",
 				"Enable culling of exit portal areas when the entry portal is not visible from the players POV (++ performance)",
+				"2.4.0",
 				true
 			};
 
@@ -394,6 +485,7 @@ namespace components
 			{
 				"check_nodes_for_potential_lights",
 				"Check each node for potential emissive light strips (rectangular with limited depth) & force-draw node on match.",
+				"2.4.0",
 				true
 			};
 
@@ -401,6 +493,7 @@ namespace components
 			{
 				"spotlight_billboard_spawning",
 				"Spawn billboard sprites (fake volumetrics) on light props",
+				"2.4.0",
 				false
 			};
 
@@ -408,6 +501,7 @@ namespace components
 			{
 				"emancipationgrill_emissive_proxy_old",
 				"Spawns an additional surface on emancipation grills that can be turned into an invisible, but emissive surface using the toolkit",
+				"2.4.0",
 				false
 			};
 
@@ -415,6 +509,7 @@ namespace components
 			{
 				"emancipationgrill_alpha_modulate1x",
 				"Use D3DTOP_MODULATE, use ADD if false",
+				"2.4.0",
 				false
 			};
 
@@ -422,6 +517,7 @@ namespace components
 			{
 				"emancipationgrill_alpha_modulate2x",
 				"Use D3DTOP_MODULATE2X, use 1x if false",
+				"2.4.0",
 				false
 			};
 
@@ -429,6 +525,7 @@ namespace components
 			{
 				"emancipationgrill_alpha_modulate4x",
 				"Use D3DTOP_MODULATE4X, use 1x if false",
+				"2.4.0",
 				true
 			};
 
@@ -436,6 +533,7 @@ namespace components
 			{
 				"emancipationgrill_force_emissive",
 				"Automatically make grill emissive and use 'emancipationgrill_emissive_scale'",
+				"2.4.0",
 				true
 			};
 
@@ -443,6 +541,7 @@ namespace components
 			{
 				"emancipationgrill_emissive_scale",
 				"Emissive scale when 'emancipationgrill_force_emissive' is true",
+				"2.4.0",
 				200.0f
 			};
 
@@ -450,6 +549,7 @@ namespace components
 			{
 				"emancipationgrill_color_scalar_center",
 				"Color scale RGBA of emancipation grills",
+				"2.4.0",
 				0.2f, 0.4f, 0.6f, 0.06f
 			};
 
@@ -457,6 +557,7 @@ namespace components
 			{
 				"emancipationgrill_color_scalar_side_emitters",
 				"Color scale RGBA of emancipation grills side emitters",
+				"2.4.0",
 				1.0f, 0.85f, 0.5f, 0.5f
 			};
 
@@ -465,6 +566,7 @@ namespace components
 				"use_brushfastpath",
 				("Enabling this sets cl_brushfastpath to true. The game will draw brushmodels in batches which might increase performance but reduce remix-ablitity?\n"
 				"# It is forced on a3 crazy box to fix a game breaking issue with a invisible un-gel-able surface but is not tested elsewhere."),
+				"2.4.0",
 				false
 			};
 
@@ -472,6 +574,7 @@ namespace components
 			{
 				"use_hardcoded_wheatly_flashlight_bts3",
 				"Spawns two hardcoded remixApi lights on wheatly on a2_bts3 when he turns on his flashlight. Deprecated, map_settings system now handles that.",
+				"2.4.0",
 				false
 			};
 
@@ -479,6 +582,7 @@ namespace components
 			{
 				"debug_info_distance",
 				"The distance cutoff (in units) were debug info such as static prop info, unbake info, bone info etc. no longer gets drawn at.",
+				"2.4.0",
 				400.0f
 			};
 
@@ -486,6 +590,7 @@ namespace components
 			{
 				"player_backwards_offset",
 				"Can be used to offset the shadow casting first person player body backwards. Same logic as found within remix but without the body mesh getting smeary.",
+				"2.4.0",
 				18.0f
 			};
 
@@ -493,6 +598,7 @@ namespace components
 			{
 				"vgui_progress_board_emissive_offset",
 				"Additional emissive offset applied to progress boards.",
+				"2.4.0",
 				3.0f
 			};
 
@@ -500,6 +606,7 @@ namespace components
 			{
 				"bik_emissive_intensity",
 				"Emissive Intensity of BIK videos",
+				"2.4.0",
 				1.0f
 			};
 
@@ -507,6 +614,7 @@ namespace components
 			{
 				"enable_dual_layered_water",
 				"Draws a secondary water layer over water.",
+				"2.4.0",
 				true
 			};
 		};
