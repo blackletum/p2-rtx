@@ -66,7 +66,6 @@ namespace components
 		{
 			std::uint32_t index = 0;
 			Vector origin = {};
-			bool no_cull = false;
 			Vector rotation = { 0.0f, 0.0f, 0.0f };
 			Vector scale = { 1.0f, 1.0f, 1.0f }; // no_cull only
 			std::unordered_set<std::uint32_t> areas; // no_cull only
@@ -230,8 +229,6 @@ namespace components
 		static const std::string& get_map_name() { return m_map_settings.mapname; }
 
 		void set_settings_for_map(const std::string& map_name);
-		static void spawn_markers_once();
-		static void destroy_markers();
 		static void on_map_load(const std::string& map_name);
 		static void on_map_unload();
 		static void clear_map_settings();
@@ -335,7 +332,6 @@ namespace components
 
 		static inline map_settings_s m_map_settings = {};
 		static inline std::vector<std::string> m_args;
-		static inline bool m_spawned_markers = false;
 		static inline bool m_loaded = false;
 
 		bool parse_toml();

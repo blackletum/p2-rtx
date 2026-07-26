@@ -83,176 +83,12 @@ namespace components
 		m_loaded = true;
 	}
 
-	// cannot be called in the current on_map_load stub (too early)
-	// called from 'once_per_frame_cb()' instead
-	void map_settings::spawn_markers_once()
-	{
-		// only spawn markers once
-		if (m_spawned_markers) {
-			return;
-		}
-
-		m_spawned_markers = true;
-
-		// spawn map markers
-		for (auto& m : m_map_settings.map_markers)
-		{
-			// ignore nocull markers (main_module::draw_nocull_markers)
-			if (m.no_cull) {
-				continue;
-			}
-
-			const auto mdl_num = m.index / 10u;
-			const auto skin_num = m.index % 10u;
-			const auto model_name = utils::va("models/props_xo/mapmarker%03d.mdl", mdl_num * 10);
-
-			void* mdlcache = reinterpret_cast<void*>(*(DWORD*)(SERVER_BASE + USE_OFFSET(0x86B07C, 0x8618FC))); // 0125
-
-			// mdlcache->BeginLock
-			utils::hook::call_virtual<30, void>(mdlcache);
-
-			// mdlcache->FindMDL
-			const auto mdl_handle = utils::hook::call_virtual<9, std::uint16_t>(mdlcache, model_name);
-			if (mdl_handle != 0xFFFF)
-			{
-				// save precache state - CBaseEntity::m_bAllowPrecache
-				const bool old_precache_state = *reinterpret_cast<bool*>(SERVER_BASE + USE_OFFSET(0x7BC2B0, 0x7B2C58)); // 0125
-
-				// allow precaching - CBaseEntity::m_bAllowPrecache
-				*reinterpret_cast<bool*>(SERVER_BASE + USE_OFFSET(0x7BC2B0, 0x7B2C58)) = true; // 0125
-
-				// CreateEntityByName - CBaseEntity *__cdecl CreateEntityByName(const char *className, int iForceEdictIndex, bool bNotify)
-				m.handle = utils::hook::call<void* (__cdecl)(const char* className, int iForceEdictIndex, bool bNotify)>(SERVER_BASE + USE_OFFSET(0x19F2C0, 0x19A090)) // 0125
-					("dynamic_prop", -1, true);
-
-				if (m.handle)
-				{
-					// ent->KeyValue
-					utils::hook::call_virtual<35, void>(m.handle, "origin", utils::va("%.10f %.10f %.10f", m.origin[0], m.origin[1], m.origin[2]));
-					utils::hook::call_virtual<35, void>(m.handle, "model", model_name);
-					utils::hook::call_virtual<35, void>(m.handle, "solid", "2");
-
-					struct skin_offset
-					{
-						char pad[0x37C];
-						int m_nSkin;
-					}; STATIC_ASSERT_OFFSET(skin_offset, m_nSkin, 0x37C);
-
-					auto skin_val = static_cast<skin_offset*>(m.handle);
-					skin_val->m_nSkin = skin_num;
-
-					// ent->Precache
-					utils::hook::call_virtual<25, void>(m.handle);
-
-					// DispatchSpawn
-					utils::hook::call<void(__cdecl)(void* pEntity, bool bRunVScripts)>(SERVER_BASE + USE_OFFSET(0x27F520, 0x279480)) // 0125
-						(m.handle, true);
-
-					// ent->Activate
-					utils::hook::call_virtual<37, void>(m.handle);
-				}
-
-				// restore precaching state - CBaseEntity::m_bAllowPrecache
-				*reinterpret_cast<bool*>(SERVER_BASE + USE_OFFSET(0x7BC2B0, 0x7B2C58)) = old_precache_state; // 0125
-			}
-
-			utils::hook::call_virtual<31, void>(mdlcache); // mdlcache->EndLock
-		}
-	}
-
-	void map_settings::destroy_markers()
-	{
-		// destroy active markers
-		for (auto& m : m_map_settings.map_markers)
-		{
-			if (m.handle)
-			{
-				game::cbaseentity_remove(m.handle);
-				m.handle = nullptr;
-			}
-		}
-
-		m_map_settings.map_markers.clear();
-		m_spawned_markers = false;
-	}
-
 	bool map_settings::parse_toml()
 	{
 		try
 		{
 			const std::string file_path = globals::root_path + COMPMOD_ASSET_DIR "map_settings.toml";
 			auto config = toml::parse(file_path, toml::spec::v(1, 1, 0));
-
-			// #
-			auto to_float = [](const toml::value& entry, const float default_val = 0.0f)
-				{
-					if (entry.is_floating()) {
-						return static_cast<float>(entry.as_floating());
-					}
-
-					if (entry.is_integer()) {
-						return static_cast<float>(entry.as_integer());
-					}
-
-					try { // this will fail and let the user know whats wrong
-						return static_cast<float>(entry.as_floating());
-					} TOML_CATCH_TYPE_ERROR;
-
-					return default_val;
-				};
-
-			// #
-			auto to_int = [](const toml::value& entry, const int default_val = 0)
-				{
-					if (entry.is_floating()) {
-						return static_cast<int>(entry.as_floating());
-					}
-
-					if (entry.is_integer()) {
-						return static_cast<int>(entry.as_integer());
-					}
-
-					try { // this will fail and let the user know whats wrong
-						return static_cast<int>(entry.as_integer());
-					} TOML_CATCH_TYPE_ERROR
-
-					return default_val;
-				};
-
-			auto to_uint = [](const toml::value& entry, const std::uint32_t default_val = 0u)
-				{
-					if (entry.is_floating()) {
-						return static_cast<std::uint32_t>(entry.as_floating());
-					}
-
-					if (entry.is_integer()) {
-						return static_cast<std::uint32_t>(entry.as_integer());
-					}
-
-					try { // this will fail and let the user know whats wrong
-						return static_cast<std::uint32_t>(entry.as_integer());
-					} TOML_CATCH_TYPE_ERROR
-
-					return default_val;
-				};
-
-			// #
-			auto to_bool = [](const toml::value& entry, const bool default_setting = false)
-				{
-					if (entry.is_boolean()) {
-						return static_cast<bool>(entry.as_boolean());
-					}
-
-					if (entry.is_integer()) {
-						return static_cast<bool>(entry.as_integer());
-					}
-
-					try { // this will fail and let the user know whats wrong
-						return static_cast<bool>(entry.as_boolean());
-					} TOML_CATCH_TYPE_ERROR
-
-					return default_setting;
-				};
 
 			// ####################
 			// parse 'FOG' table
@@ -272,18 +108,18 @@ namespace components
 						if ((has_distance || has_density) && map.contains("color"))
 						{
 							if (has_distance) {
-								m_map_settings.fog_dist = to_float(map.at("distance"));
+								m_map_settings.fog_dist = common::toml_ext::to_float(map.at("distance"));
 							}
 							else if (has_density) {
-								m_map_settings.fog_density = to_float(map.at("density"));
+								m_map_settings.fog_density = common::toml_ext::to_float(map.at("density"));
 							}
 
 							if (const auto& color = map.at("color").as_array();
 								color.size() == 3)
 							{
-								const auto r = static_cast<std::uint8_t>(to_int(color[0]));
-								const auto g = static_cast<std::uint8_t>(to_int(color[1]));
-								const auto b = static_cast<std::uint8_t>(to_int(color[2]));
+								const auto r = static_cast<std::uint8_t>(common::toml_ext::to_int(color[0]));
+								const auto g = static_cast<std::uint8_t>(common::toml_ext::to_int(color[1]));
+								const auto b = static_cast<std::uint8_t>(common::toml_ext::to_int(color[2]));
 								m_map_settings.fog_color = D3DCOLOR_XRGB(r, g, b);
 							}
 						}
@@ -305,19 +141,19 @@ namespace components
 						!map.is_empty())
 					{
 						if (map.contains("scale")) {
-							m_map_settings.water_uv_scale = to_float(map.at("scale"), 1.0f);
+							m_map_settings.water_uv_scale = common::toml_ext::to_float(map.at("scale"), 1.0f);
 						}
 
 						if (map.contains("scale_top")) {
-							m_map_settings.water_uv_top_scale = to_float(map.at("scale_top"), 0.0f);
+							m_map_settings.water_uv_top_scale = common::toml_ext::to_float(map.at("scale_top"), 0.0f);
 						}
 
 						if (map.contains("top_layer_offset")) {
-							m_map_settings.water_offset_top = to_float(map.at("top_layer_offset"), 0.5f);
+							m_map_settings.water_offset_top = common::toml_ext::to_float(map.at("top_layer_offset"), 0.5f);
 						}
 
 						if (map.contains("bottom_layer_offset")) {
-							m_map_settings.water_offset_bottom = to_float(map.at("bottom_layer_offset"), 0.0f);
+							m_map_settings.water_offset_bottom = common::toml_ext::to_float(map.at("bottom_layer_offset"), 0.0f);
 						}
 					}
 				}
@@ -331,7 +167,7 @@ namespace components
 				auto& cull_table = config["CULL"];
 
 				// #
-				auto process_cull_entry = [to_uint, to_float](const toml::value& entry)
+				auto process_cull_entry = [](const toml::value& entry)
 					{
 						const auto contains_leafs = entry.contains("leafs");
 						const auto contains_areas = entry.contains("areas");
@@ -342,7 +178,7 @@ namespace components
 
 						if (entry.contains("in_area"))
 						{
-							const auto area = to_uint(entry.at("in_area"));
+							const auto area = common::toml_ext::to_uint(entry.at("in_area"));
 
 							// forced leafs
 							std::unordered_set<std::uint32_t> leaf_set;
@@ -351,7 +187,7 @@ namespace components
 								auto& leafs = entry.at("leafs").as_array();
 
 								for (const auto& leaf : leafs) {
-									leaf_set.insert(to_uint(leaf));
+									leaf_set.insert(common::toml_ext::to_uint(leaf));
 								}
 							}
 
@@ -362,7 +198,7 @@ namespace components
 								auto& areas = entry.at("areas").as_array();
 
 								for (const auto& a : areas) {
-									area_set.insert(to_uint(a));
+									area_set.insert(common::toml_ext::to_uint(a));
 								}
 							}
 
@@ -370,7 +206,7 @@ namespace components
 							AREA_CULL_MODE cmode = imgui::get()->m_disable_cullnode ? map_settings::AREA_CULL_MODE_NO_FRUSTUM : map_settings::AREA_CULL_INFO_DEFAULT;
 							if (contains_cull)
 							{
-								auto m = to_uint(entry.at("cull"));
+								auto m = common::toml_ext::to_uint(entry.at("cull"));
 								if (m >= AREA_CULL_INFO_COUNT)
 								{
 									common::log("MapSettings", std::format("param 'cull' was out-of-range {:d}", m), common::LOG_TYPE::LOG_TYPE_ERROR, false);
@@ -382,7 +218,7 @@ namespace components
 							// nocull dist for certain cull modes
 							float temp_nocull_dist = game_settings::get()->default_nocull_distance.get_as<float>();
 							if (entry.contains("nocull_dist")) {
-								temp_nocull_dist = to_float(entry.at("nocull_dist"));
+								temp_nocull_dist = common::toml_ext::to_float(entry.at("nocull_dist"));
 							}
 
 							// hidden leafs
@@ -392,7 +228,7 @@ namespace components
 								auto& leafs = entry.at("hide_leafs").as_array();
 
 								for (const auto& leaf : leafs) {
-									hidden_leaf_set.insert(to_uint(leaf));
+									hidden_leaf_set.insert(common::toml_ext::to_uint(leaf));
 								}
 							}
 
@@ -409,7 +245,7 @@ namespace components
 										const auto& areas = elem.at("areas").as_array();
 
 										for (const auto& a : areas) {
-											temp_area_set.insert(to_uint(a));
+											temp_area_set.insert(common::toml_ext::to_uint(a));
 										}
 
 										std::unordered_set<std::uint32_t> temp_not_in_leaf_set;
@@ -417,7 +253,7 @@ namespace components
 										{
 											const auto& nleafs = elem.at("N_leafs").as_array();
 											for (const auto& nl : nleafs) {
-												temp_not_in_leaf_set.insert(to_uint(nl));
+												temp_not_in_leaf_set.insert(common::toml_ext::to_uint(nl));
 											}
 										}
 
@@ -441,7 +277,7 @@ namespace components
 										const auto& in_leafs = elem.at("in_leafs").as_array();
 
 										for (const auto& l : in_leafs) {
-											temp_in_leafs_set.insert(to_uint(l));
+											temp_in_leafs_set.insert(common::toml_ext::to_uint(l));
 										}
 
 										std::unordered_set<std::uint32_t> temp_areas;
@@ -449,7 +285,7 @@ namespace components
 										{
 											const auto& areas = elem.at("areas").as_array();
 											for (const auto& a : areas) {
-												temp_areas.insert(to_uint(a));
+												temp_areas.insert(common::toml_ext::to_uint(a));
 											}
 										}
 
@@ -458,7 +294,7 @@ namespace components
 										{
 											const auto& leafs = elem.at("leafs").as_array();
 											for (const auto& l : leafs) {
-												temp_leafs.insert(to_uint(l));
+												temp_leafs.insert(common::toml_ext::to_uint(l));
 											}
 										}
 
@@ -466,7 +302,7 @@ namespace components
 										float temp_leaf_tweak_nocull_dist = 0.0f; // 0 = no override
 										if (elem.contains("nocull_dist"))
 										{
-											temp_leaf_tweak_nocull_dist = to_float(elem.at("nocull_dist"));
+											temp_leaf_tweak_nocull_dist = common::toml_ext::to_float(elem.at("nocull_dist"));
 											any_nocull_dist_overrides_in_leaf_tweaks = true;
 										}
 
@@ -544,7 +380,7 @@ namespace components
 									!rarray.empty())
 								{
 									for (auto& r : rarray) {
-										m_map_settings.hide_models.radii.insert(to_float(r, -1.0f));
+										m_map_settings.hide_models.radii.insert(common::toml_ext::to_float(r, -1.0f));
 									}
 								}
 							}
@@ -608,18 +444,17 @@ namespace components
 				auto& marker_table = config["MARKER"];
 
 				// #
-				auto process_marker_entry = [to_int, to_float](const toml::value& entry)
+				auto process_marker_entry = [](const toml::value& entry)
 					{
-						bool temp_is_nocull_marker = false;
 						std::uint32_t temp_marker_index = 0u;
 
-						if (entry.contains("marker")) {
-							temp_marker_index = static_cast<std::uint32_t>(to_int(entry.at("marker"), 0u));
-						}
-						else if (entry.contains("nocull"))
+						if (entry.contains("marker")) 
 						{
-							temp_marker_index = static_cast<std::uint32_t>(to_int(entry.at("nocull"), 0u));
-							temp_is_nocull_marker = true;
+							temp_marker_index = static_cast<std::uint32_t>(common::toml_ext::to_int(entry.at("marker"), 0u));
+							common::log("MapSettings", "Using deprecated marker system (index: " + std::to_string(temp_marker_index) + "). Transition to nocull!", common::LOG_TYPE::LOG_TYPE_WARN);
+						}
+						else if (entry.contains("nocull")) {
+							temp_marker_index = static_cast<std::uint32_t>(common::toml_ext::to_int(entry.at("nocull"), 0u));
 						}
 						else
 						{
@@ -646,7 +481,7 @@ namespace components
 								if (entry.contains("rotation"))
 								{
 									if (const auto& rot = entry.at("rotation").as_array(); rot.size() == 3) {
-										temp_rotation = { DEG2RAD(to_float(rot[0])), DEG2RAD(to_float(rot[1])), DEG2RAD(to_float(rot[2])) };
+										temp_rotation = { DEG2RAD(common::toml_ext::to_float(rot[0])), DEG2RAD(common::toml_ext::to_float(rot[1])), DEG2RAD(common::toml_ext::to_float(rot[2])) };
 									}
 									else { TOML_ERROR("[MARKER] #rotation", entry.at("rotation"), "expected a 3D vector but got => %d ", entry.at("rotation").as_array().size()); }
 								}
@@ -655,7 +490,7 @@ namespace components
 								if (entry.contains("scale"))
 								{
 									if (const auto& scale = entry.at("scale").as_array(); scale.size() == 3) {
-										temp_scale = { to_float(scale[0]), to_float(scale[1]), to_float(scale[2]) };
+										temp_scale = { common::toml_ext::to_float(scale[0]), common::toml_ext::to_float(scale[1]), common::toml_ext::to_float(scale[2]) };
 									}
 									else { TOML_ERROR("[MARKER] #scale", entry.at("scale"), "expected a 3D vector but got => %d ", entry.at("scale").as_array().size()); }
 								}
@@ -667,7 +502,7 @@ namespace components
 									if (const auto& areas = entry.at("areas").as_array(); !areas.empty())
 									{
 										for (const auto& a : areas) {
-											temp_area_set.insert(to_int(a));
+											temp_area_set.insert(common::toml_ext::to_int(a));
 										}
 									}
 								}
@@ -679,7 +514,7 @@ namespace components
 									if (const auto& nleafs = entry.at("N_leafs").as_array(); !nleafs.empty())
 									{
 										for (const auto& nl : nleafs) {
-											temp_not_in_leaf_set.insert(to_int(nl));
+											temp_not_in_leaf_set.insert(common::toml_ext::to_int(nl));
 										}
 									}
 								}
@@ -688,8 +523,7 @@ namespace components
 									marker_settings_s
 									{
 										.index = temp_marker_index,
-										.origin = { to_float(pos[0]), to_float(pos[1]), to_float(pos[2]) },
-										.no_cull = temp_is_nocull_marker,
+										.origin = {common::toml_ext::to_float(pos[0]), common::toml_ext::to_float(pos[1]), common::toml_ext::to_float(pos[2]) },
 										.rotation = temp_rotation,
 										.scale = temp_scale,
 										.areas = std::move(temp_area_set),
@@ -720,7 +554,7 @@ namespace components
 			{
 				auto& configvar_table = config["CONFIGVARS"];
 
-				auto process_transition_entry = [to_uint, to_int, to_float](const toml::value& entry)
+				auto process_transition_entry = [](const toml::value& entry)
 					{
 						// we NEED conf, leafs and duration or speed
 						if (entry.contains("conf") && entry.contains("trigger") && (entry.contains("duration") || entry.contains("speed")))
@@ -741,23 +575,23 @@ namespace components
 								float delay_in = 0.0f, delay_out = 0.0f, duration = 0.0f;
 
 								if (entry.contains("mode")) {
-									mode = (std::uint8_t)to_int(entry.at("mode"));
+									mode = (std::uint8_t)common::toml_ext::to_int(entry.at("mode"));
 								}
 
 								if (entry.contains("ease")) {
-									ease = (remix_vars::EASE_TYPE)to_int(entry.at("ease"));
+									ease = (remix_vars::EASE_TYPE)common::toml_ext::to_int(entry.at("ease"));
 								}
 
 								if (entry.contains("delay_in")) {
-									delay_in = to_float(entry.at("delay_in"));
+									delay_in = common::toml_ext::to_float(entry.at("delay_in"));
 								}
 
 								if (entry.contains("delay_out")) {
-									delay_out = to_float(entry.at("delay_out"));
+									delay_out = common::toml_ext::to_float(entry.at("delay_out"));
 								}
 
 								if (entry.contains("duration")) {
-									duration = to_float(entry.at("duration"));
+									duration = common::toml_ext::to_float(entry.at("duration"));
 								}
 
 								const auto& trigger = entry.at("trigger");
@@ -820,7 +654,7 @@ namespace components
 									std::string temp_sound_name;
 
 									if (trigger.at("sound").type() == toml::value_t::integer) {
-										temp_sound_hash = to_uint(trigger.at("sound"), 0u);
+										temp_sound_hash = common::toml_ext::to_uint(trigger.at("sound"), 0u);
 									}
 									else
 									{
@@ -855,7 +689,7 @@ namespace components
 									if (!leafs.empty())
 									{
 										for (const auto& leaf : leafs) {
-											leaf_set.insert(to_int(leaf));
+											leaf_set.insert(common::toml_ext::to_int(leaf));
 										}
 
 										// create a unique hash for this transition
@@ -932,7 +766,7 @@ namespace components
 				auto& portal_table = config["PORTALS"];
 
 				// #
-				auto process_portal_pair_entry = [to_int, to_float](const toml::value& entry)
+				auto process_portal_pair_entry = [](const toml::value& entry)
 					{
 						if (entry.contains("pair") && entry.contains("portals"))
 						{
@@ -948,25 +782,25 @@ namespace components
 										const auto& p0_pos = parray[0].at("position").as_array();
 										const auto& p0_rot = parray[0].at("rotation").as_array();
 										const auto& p0_scale = parray[0].at("scale").as_array();
-										const auto& p0_mask = to_int(parray[0].at("square_mask"));
+										const auto& p0_mask = common::toml_ext::to_int(parray[0].at("square_mask"));
 
 										const auto& p1_pos = parray[1].at("position").as_array();
 										const auto& p1_rot = parray[1].at("rotation").as_array();
 										const auto& p1_scale = parray[1].at("scale").as_array();
-										const auto& p1_mask = to_int(parray[1].at("square_mask"));
+										const auto& p1_mask = common::toml_ext::to_int(parray[1].at("square_mask"));
 
 										if (p0_pos.size() == 3 && p0_rot.size() == 3 && p0_scale.size() == 2
 											&& p1_pos.size() == 3 && p1_rot.size() == 3 && p1_scale.size() == 2)
 										{
 											remix_rayportal::get()->add_pair(
-												(remix_rayportal::PORTAL_PAIR)static_cast<std::uint32_t>(to_int(entry.at("pair"))),
-												{ to_float(p0_pos[0]),   to_float(p0_pos[1]), to_float(p0_pos[2]) },
-												{ to_float(p0_rot[0]),   to_float(p0_rot[1]), to_float(p0_rot[2]) },
-												{ to_float(p0_scale[0]), to_float(p0_scale[1]) },
+												(remix_rayportal::PORTAL_PAIR)static_cast<std::uint32_t>(common::toml_ext::to_int(entry.at("pair"))),
+												{ common::toml_ext::to_float(p0_pos[0]),   common::toml_ext::to_float(p0_pos[1]), common::toml_ext::to_float(p0_pos[2]) },
+												{ common::toml_ext::to_float(p0_rot[0]),   common::toml_ext::to_float(p0_rot[1]), common::toml_ext::to_float(p0_rot[2]) },
+												{ common::toml_ext::to_float(p0_scale[0]), common::toml_ext::to_float(p0_scale[1]) },
 												p0_mask,
-												{ to_float(p1_pos[0]),   to_float(p1_pos[1]), to_float(p1_pos[2]) },
-												{ to_float(p1_rot[0]),   to_float(p1_rot[1]), to_float(p1_rot[2]) },
-												{ to_float(p1_scale[0]), to_float(p1_scale[1]) },
+												{ common::toml_ext::to_float(p1_pos[0]),   common::toml_ext::to_float(p1_pos[1]), common::toml_ext::to_float(p1_pos[2]) },
+												{ common::toml_ext::to_float(p1_rot[0]),   common::toml_ext::to_float(p1_rot[1]), common::toml_ext::to_float(p1_rot[2]) },
+												{ common::toml_ext::to_float(p1_scale[0]), common::toml_ext::to_float(p1_scale[1]) },
 												p1_mask);
 										}
 									}
@@ -1000,7 +834,7 @@ namespace components
 				auto& light_table = config["LIGHTS"];
 
 				// #
-				auto process_light_entry = [to_bool, to_int, to_uint, to_float](const toml::value& entry)
+				auto process_light_entry = [](const toml::value& entry)
 					{
 						if (entry.contains("points") && !entry.at("points").as_array().empty())
 						{
@@ -1056,18 +890,18 @@ namespace components
 								// sound trigger
 								else if (trigger.contains("sound"))
 								{
-									temp_trigger_sound = to_uint(trigger.at("sound"), 0u);
+									temp_trigger_sound = common::toml_ext::to_uint(trigger.at("sound"), 0u);
 									has_valid_trigger = true;
 								}
 
 								if (has_valid_trigger)
 								{
 									if (trigger.contains("delay")) {
-										temp_trigger_delay = to_float(trigger.at("delay"), 0.0f);
+										temp_trigger_delay = common::toml_ext::to_float(trigger.at("delay"), 0.0f);
 									}
 
 									if (trigger.contains("always")) {
-										temp_trigger_always = to_bool(trigger.at("always"), false);
+										temp_trigger_always = common::toml_ext::to_bool(trigger.at("always"), false);
 									}
 								}
 								else { TOML_ERROR("[LIGHTS] #trigger", trigger, "defined trigger with no choreo / sound hash"); }
@@ -1095,14 +929,14 @@ namespace components
 								// sound
 								else if (kill.contains("sound"))
 								{
-									temp_kill_sound = to_uint(kill.at("sound"), 0u);
+									temp_kill_sound = common::toml_ext::to_uint(kill.at("sound"), 0u);
 									has_valid_kill_trigger = true;
 								}
 
 								if (has_valid_kill_trigger)
 								{
 									if (kill.contains("delay")) {
-										temp_kill_delay = to_float(kill.at("delay"), 0.0f);
+										temp_kill_delay = common::toml_ext::to_float(kill.at("delay"), 0.0f);
 									}
 								}
 								else { TOML_ERROR("[LIGHTS] #trigger", kill, "defined kill trigger with no choreo / sound hash"); }
@@ -1138,30 +972,30 @@ namespace components
 								{
 									if (const auto& radiance = p.at("radiance").as_array(); radiance.size() == 3)
 									{
-										temp_radiance = Vector(to_float(radiance[0], 10.0f), to_float(radiance[1], 10.0f), to_float(radiance[2], 10.0f));
+										temp_radiance = Vector(common::toml_ext::to_float(radiance[0], 10.0f), common::toml_ext::to_float(radiance[1], 10.0f), common::toml_ext::to_float(radiance[2], 10.0f));
 									}
 									else { TOML_ERROR("[LIGHTS] #radiance", p.at("radiance"), "expected a 3D vector but got => %d ", p.at("radiance").as_array().size()); }
 								}
 
 								float temp_radiance_scalar = 1.0f;
 								if (p.contains("scalar")) {
-									temp_radiance_scalar = to_float(p.at("scalar"), 1.0f);
+									temp_radiance_scalar = common::toml_ext::to_float(p.at("scalar"), 1.0f);
 								}
 
 								float temp_radius = 1.0f;
 								if (p.contains("radius")) {
-									temp_radius = to_float(p.at("radius"), 1.0f);
+									temp_radius = common::toml_ext::to_float(p.at("radius"), 1.0f);
 								}
 
 								float temp_timepoint = 0.0f;
 								if (i && p.contains("timepoint")) { // do not set timepoint for first point
-									temp_timepoint = to_float(p.at("timepoint"), 0.0f);
+									temp_timepoint = common::toml_ext::to_float(p.at("timepoint"), 0.0f);
 								}
 
 								float temp_smoothness = 0.5f;
 								if (p.contains("smoothness"))
 								{
-									temp_smoothness = to_float(p.at("smoothness"), 0.5f);
+									temp_smoothness = common::toml_ext::to_float(p.at("smoothness"), 0.5f);
 									temp_smoothness = std::clamp<float>(temp_smoothness, 0.0f, 10.0f);
 								}
 
@@ -1173,7 +1007,7 @@ namespace components
 								{
 									if (const auto& direction = p.at("direction").as_array(); direction.size() == 3)
 									{
-										temp_direction = Vector(to_float(direction[0], 0.0f), to_float(direction[1], 0.0f), to_float(direction[2], 1.0f));
+										temp_direction = Vector(common::toml_ext::to_float(direction[0], 0.0f), common::toml_ext::to_float(direction[1], 0.0f), common::toml_ext::to_float(direction[2], 1.0f));
 										temp_direction.Normalize();
 									}
 									else { TOML_ERROR("[LIGHTS] #direction", p.at("direction"), "expected a 3D vector but got => %d ", p.at("direction").as_array().size()); }
@@ -1184,7 +1018,7 @@ namespace components
 								{
 									if (const auto& angle_offset_attached = p.at("angle_offset_attached").as_array(); angle_offset_attached.size() == 3)
 									{
-										temp_angle_offset_attached = Vector(to_float(angle_offset_attached[0], 0.0f), to_float(angle_offset_attached[1], 0.0f), to_float(angle_offset_attached[2], 0.0f));
+										temp_angle_offset_attached = Vector(common::toml_ext::to_float(angle_offset_attached[0], 0.0f), common::toml_ext::to_float(angle_offset_attached[1], 0.0f), common::toml_ext::to_float(angle_offset_attached[2], 0.0f));
 										utils::vector::angle_normalize(temp_angle_offset_attached);
 									}
 									else { TOML_ERROR("[LIGHTS] #angle_offset_attached", p.at("angle_offset_attached"), "expected a 3D vector but got => %d ", p.at("angle_offset_attached").as_array().size()); }
@@ -1194,7 +1028,7 @@ namespace components
 								float temp_degrees = 180.0f;
 								if (p.contains("degrees"))
 								{
-									temp_degrees = to_float(p.at("degrees"), 180.0f);
+									temp_degrees = common::toml_ext::to_float(p.at("degrees"), 180.0f);
 									temp_degrees = std::clamp<float>(temp_degrees, 0.0f, 180.0f);
 									temp_shaping_enabled = temp_degrees != 180.0f;
 								}
@@ -1202,19 +1036,19 @@ namespace components
 								float temp_softness = 0.0f;
 								if (p.contains("softness"))
 								{
-									temp_softness = to_float(p.at("softness"), 0.0f);
+									temp_softness = common::toml_ext::to_float(p.at("softness"), 0.0f);
 									temp_softness = std::clamp<float>(temp_softness, 0.0f, M_PI);
 								}
 
 								float temp_exponent = 0.0f;
 								if (p.contains("exponent")) {
-									temp_exponent = to_float(p.at("exponent"), 0.0f);
+									temp_exponent = common::toml_ext::to_float(p.at("exponent"), 0.0f);
 								}
 
 								// volumetrics
 								float temp_volumetric = 1.0f;
 								if (p.contains("volumetric_scale")) { // volumetricRadianceScale
-									temp_volumetric = to_float(p.at("volumetric_scale"), 1.0f);
+									temp_volumetric = common::toml_ext::to_float(p.at("volumetric_scale"), 1.0f);
 								}
 
 								// to avoid code duplication
@@ -1224,7 +1058,7 @@ namespace components
 								if (point_has_valid_position)
 								{
 									const auto& positions = p.at("position").as_array();
-									pt = Vector(to_float(positions[0]), to_float(positions[1]), to_float(positions[2]));
+									pt = Vector(common::toml_ext::to_float(positions[0]), common::toml_ext::to_float(positions[1]), common::toml_ext::to_float(positions[2]));
 								}
 								else {
 									pt = temp_points.back().position; // pos of previous point
@@ -1265,7 +1099,7 @@ namespace components
 
 								if (attach.contains("radius"))
 								{
-									temp_attach_prop_radius = to_float(attach.at("radius"), 0.0f);
+									temp_attach_prop_radius = common::toml_ext::to_float(attach.at("radius"), 0.0f);
 									has_valid_attach = true;
 								}
 								else if (attach.contains("name"))
@@ -1285,13 +1119,13 @@ namespace components
 										if (const auto& bounds = attach.at("bounds").as_array();
 											bounds.size() == 6u)
 										{
-											temp_attach_prop_bounds_min = Vector(to_float(bounds[0]), to_float(bounds[1]), to_float(bounds[2]));
-											temp_attach_prop_bounds_max = Vector(to_float(bounds[3]), to_float(bounds[4]), to_float(bounds[5]));
+											temp_attach_prop_bounds_min = Vector(common::toml_ext::to_float(bounds[0]), common::toml_ext::to_float(bounds[1]), common::toml_ext::to_float(bounds[2]));
+											temp_attach_prop_bounds_max = Vector(common::toml_ext::to_float(bounds[3]), common::toml_ext::to_float(bounds[4]), common::toml_ext::to_float(bounds[5]));
 										}
 									}
 
 									if (attach.contains("bone_index")) {
-										temp_attach_bone_index = to_int(attach.at("bone_index"), -1);
+										temp_attach_bone_index = common::toml_ext::to_int(attach.at("bone_index"), -1);
 									}
 
 									if (attach.contains("bone_name"))
@@ -1308,17 +1142,17 @@ namespace components
 							{
 								bool temp_run_once = false;
 								if (entry.contains("run_once")) {
-									temp_run_once = to_bool(entry.at("run_once"), false);
+									temp_run_once = common::toml_ext::to_bool(entry.at("run_once"), false);
 								}
 
 								bool temp_loop = false;
 								if (entry.contains("loop")) {
-									temp_loop = to_bool(entry.at("loop"), false);
+									temp_loop = common::toml_ext::to_bool(entry.at("loop"), false);
 								}
 
 								bool temp_loop_smoothing = false;
 								if (entry.contains("loop_smoothing")) {
-									temp_loop_smoothing = to_bool(entry.at("loop_smoothing"), false);
+									temp_loop_smoothing = common::toml_ext::to_bool(entry.at("loop_smoothing"), false);
 								}
 
 								m_map_settings.remix_lights.push_back(
@@ -1402,9 +1236,14 @@ namespace components
 	void map_settings::open_and_set_var_config(const std::string& config, const bool no_error, const bool ignore_hashes, const char* custom_path)
 	{
 		std::string path = COMPMOD_ASSET_DIR "map_configs";
-		if (custom_path)
-		{
+		if (custom_path) {
 			path = custom_path;
+		}
+
+		if (!std::filesystem::exists(path + "\\" + config)) 
+		{
+			common::log("MapSettings", std::format("Failed to find config: '{}' in '{}'", config, custom_path ? custom_path : "'" COMPMOD_ASSET_DIR "map_configs'"), common::LOG_TYPE::LOG_TYPE_WARN, false);
+			return;
 		}
 
 		std::ifstream file;
@@ -1444,7 +1283,7 @@ namespace components
 			file.close();
 		}
 		else if (!no_error) {
-			common::log("MapSettings", std::format("Failed to find config: '{}' in '{}'", config, custom_path ? custom_path : "'" COMPMOD_ASSET_DIR "map_configs'"), common::LOG_TYPE::LOG_TYPE_DEFAULT, false);
+			common::log("MapSettings", std::format("Failed to open config: '{}' in '{}'", config, custom_path ? custom_path : "'" COMPMOD_ASSET_DIR "map_configs'"), common::LOG_TYPE::LOG_TYPE_ERROR, false);
 		}
 	}
 
@@ -1507,10 +1346,7 @@ namespace components
 		m_map_settings.hide_models.radii.clear();
 		m_map_settings.unbake_models.clear();
 		m_map_settings.remix_transitions.clear();
-
-		destroy_markers();
 		m_map_settings.map_markers.clear();
-
 		m_map_settings.api_var_configs.clear();
 
 		remix_lights::get()->destroy_and_clear_all_active_lights();
