@@ -92,8 +92,7 @@ namespace components
 		{
 			if (m_looping) {
 				m_elapsed_time -= m_total_duration;
-			}
-			else {
+			} else {
 				m_elapsed_time = m_total_duration;
 			}
 
@@ -1122,8 +1121,7 @@ namespace components
 				{
 					first_done = true;
 					remixapi.add_debug_circle(circle_pos, Vector(0.0f, 0.0f, 1.0f), radius - 0.02f, radius * 0.1f, color);
-				}
-				else {
+				} else {
 					remixapi.add_debug_circle_based_on_previous(circle_pos, Vector(0, 0, 90), Vector(1.0f, 1.0f, 1.0f));
 				}
 

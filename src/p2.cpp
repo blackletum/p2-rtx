@@ -80,6 +80,7 @@ namespace p2
 	uint32_t nop_addr__flow_through_area = 0u;
 	uint32_t mod_addr__cstaticpropmgr_update_prop_visibility = 0u;
 	uint32_t nop_addr__cstaticpropmgr_update_prop_visibility = 0u;
+	uint32_t hk_addr__on_start_sound = 0u;
 
 	// - client
 	uint32_t hk_addr__cviewrenderer_renderview = 0u;
@@ -186,9 +187,11 @@ namespace p2
 		PATTERN_OFFSET_SIMPLE(ENGINE_MOD, mod_addr__cbrushbatchrender_draw_opaque_bmodel, "74 ? 80 7D ? ? 74 ? ? ? 8B 42 ? 6A", 0, USE_OFFSET(0x7193A, 0x7153A));
 		PATTERN_OFFSET_SIMPLE(ENGINE_MOD, nop_addr__cbrushbatchrender_compute_lmap_pages, "74 ? 85 C9 7E ? 8B 45", 0, USE_OFFSET(0x6EC00, 0x6E710));
 		PATTERN_OFFSET_SIMPLE(ENGINE_MOD, hk_addr__flow_through_area, "E8 ? ? ? ? 83 C4 ? EB ? A1 ? ? ? ? C6 05", 0, USE_OFFSET(0x11025C, 0x10F0EC));
-		PATTERN_OFFSET_SIMPLE(ENGINE_MOD, nop_addr__flow_through_area, "80 3D ? ? ? ? ? 75 ? E8 ? ? ? ? 5F", 9, USE_OFFSET(0x11028D, 0x10F0EC));
+		PATTERN_OFFSET_SIMPLE(ENGINE_MOD, nop_addr__flow_through_area, "80 3D ? ? ? ? ? 75 ? E8 ? ? ? ? 5F", 9, USE_OFFSET(0x11028D, 0x10F11D));
 		PATTERN_OFFSET_SIMPLE(ENGINE_MOD, mod_addr__cstaticpropmgr_update_prop_visibility, "78 ? 8A 47 ? 84 C0", 0, USE_OFFSET(0x1F02D0, 0x1ED3F0));
 		PATTERN_OFFSET_SIMPLE(ENGINE_MOD, nop_addr__cstaticpropmgr_update_prop_visibility, "75 ? 66 83 7F ? ? 74", 0, USE_OFFSET(0x1F035F, 0x1ED47F));
+		PATTERN_OFFSET_SIMPLE(ENGINE_MOD, hk_addr__on_start_sound, "8B C3 E8 ? ? ? ? 5F", 7, USE_OFFSET(0x1BF40, 0x1BD20));
+
 
 		// --------------------------
 		// - client - variables
@@ -207,7 +210,7 @@ namespace p2
 		PATTERN_OFFSET_SIMPLE(CLIENT_MOD, mod_addr__csimpleworldview_setup, "83 8E ? ? ? ? ? EB ? 80 7B", 0, USE_OFFSET(0x1EB145, 0x1E5695));
 		PATTERN_OFFSET_SIMPLE(CLIENT_MOD, hk_addr__cportalghost_should_draw, "? ? ? ? ? 50 E8 ? ? ? ? ? ? ? ? ? ? ? ? ? 83 C4 ? ? ? ? ? 77", 0, USE_OFFSET(0x28357C, 0x27D4AC));
 		PATTERN_OFFSET_SIMPLE(CLIENT_MOD, hk_addr__draw_our_3rd_person_body_mesh, "E8 ? ? ? ? 84 C0 75 ? 8B 45 ? A8", 0, USE_OFFSET(0x27AEB4, 0x274FF4));
-		PATTERN_OFFSET_SIMPLE(CLIENT_MOD, hk_addr__draw_our_3rd_person_weapon_mesh, "83 C4 ? A1 ? ? ? ? ? ? 8B 45", 20, USE_OFFSET(0x98450, 0x950B4));
+		PATTERN_OFFSET_SIMPLE(CLIENT_MOD, hk_addr__draw_our_3rd_person_weapon_mesh, "83 C4 ? A1 ? ? ? ? ? ? 8B 45", 20, USE_OFFSET(0x98450, 0x950A0));
 		if (hk_addr__draw_our_3rd_person_weapon_mesh) {
 			fn_addr__draw_our_3rd_person_weapon_mesh = USE_OFFSET(utils::mem::resolve_relative_call_address(hk_addr__draw_our_3rd_person_weapon_mesh), 0x58710); found_pattern_count++;
 		} total_pattern_count++;

@@ -80,6 +80,7 @@ namespace p2
 	extern uint32_t nop_addr__flow_through_area;
 	extern uint32_t mod_addr__cstaticpropmgr_update_prop_visibility;
 	extern uint32_t nop_addr__cstaticpropmgr_update_prop_visibility;
+	extern uint32_t hk_addr__on_start_sound;
 
 	// - client
 	extern uint32_t hk_addr__cviewrenderer_renderview;
