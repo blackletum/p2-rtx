@@ -111,6 +111,50 @@ namespace utils
 	uint32_t hash32_combine(uint32_t seed, int val);
 	uint32_t hash32_combine(uint32_t seed, float val);
 
+	class version_t
+	{
+	public:
+		version_t()
+		{}
+
+		static version_t from_string(const std::string& str)
+		{
+			version_t v; char dot;
+			std::stringstream ss(str);
+
+			ss >> v.major >> dot >> v.minor >> dot >> v.patch;
+			return v;
+		}
+
+		auto tie() const {
+			return std::tie(major, minor, patch);
+		}
+
+		bool operator<(const version_t& other) const {
+			return tie() < other.tie();
+		}
+
+		bool operator>(const version_t& other) const {
+			return tie() > other.tie();
+		}
+
+		bool operator<=(const version_t& other) const {
+			return tie() <= other.tie();
+		}
+
+		bool operator>=(const version_t& other) const {
+			return tie() >= other.tie();
+		}
+
+		bool operator==(const version_t& other) const {
+			return tie() == other.tie();
+		}
+
+		int major = 0;
+		int minor = 0;
+		int patch = 0;
+	};
+
 	class benchmark
 	{
 	public:

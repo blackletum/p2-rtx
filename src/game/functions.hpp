@@ -1,12 +1,20 @@
 #pragma once
 
-#define RENDERER_BASE			game::shaderapidx9_module	// 0125: offsets unchanged
-#define STUDIORENDER_BASE		game::studiorender_module
-//#define MATERIALSTYSTEM_BASE	game::materialsystem_module
-#define ENGINE_BASE				game::engine_module			// 0125: offsets changed
-#define CLIENT_BASE				game::client_module			// 0125: offsets changed
-#define SERVER_BASE				game::server_module			// 0125: offsets unchanged
-#define VSTDLIB_BASE			game::vstdlib_module		// 0125: offsets unchanged
+#define RENDERER_MOD			game::shaderapidx9_module
+#define STUDIORENDER_MOD		game::studiorender_module
+#define MATERIALSTYSTEM_MOD		game::materialsystem_module
+#define ENGINE_MOD				game::engine_module
+#define CLIENT_MOD				game::client_module
+#define SERVER_MOD				game::server_module
+#define VSTDLIB_MOD				game::vstdlib_module
+
+#define RENDERER_BASE			game::shaderapidx9_module.handle
+#define STUDIORENDER_BASE		game::studiorender_module.handle
+#define MATERIALSTYSTEM_BASE	game::materialsystem_module.handle
+#define ENGINE_BASE				game::engine_module.handle
+#define CLIENT_BASE				game::client_module.handle
+#define SERVER_BASE				game::server_module.handle
+#define VSTDLIB_BASE			game::vstdlib_module.handle
 
 using namespace components;
 
@@ -20,15 +28,13 @@ namespace glob
 
 namespace game
 {
-	extern std::vector<std::string> loaded_modules;
-	//extern std::string root_path;
-	extern DWORD shaderapidx9_module;
-	extern DWORD studiorender_module;
-	extern DWORD materialsystem_module;
-	extern DWORD engine_module;
-	extern DWORD client_module;
-	extern DWORD server_module;
-	extern DWORD vstdlib_module;
+	extern utils::mem::module_info shaderapidx9_module;
+	extern utils::mem::module_info studiorender_module;
+	extern utils::mem::module_info materialsystem_module;
+	extern utils::mem::module_info engine_module;
+	extern utils::mem::module_info client_module;
+	extern utils::mem::module_info server_module;
+	extern utils::mem::module_info vstdlib_module;
 
 	extern const D3DXMATRIX IDENTITY;
 	extern const D3DXMATRIX TC_TRANSLATE_TO_CENTER;
@@ -161,7 +167,62 @@ namespace game
 	extern void unlock_cursor();
 
 
-	// -----
+	// ::
+	// debug print console redirects
 
-	extern void init_game_addresses();
+	static void(WINAPI* OriginalOutputDebugStringA)(LPCSTR lpOutputString) = nullptr;
+	static void(WINAPI* OriginalOutputDebugStringW)(LPCWSTR lpOutputString) = nullptr;
+
+	inline void WINAPI HookedOutputDebugStringA(LPCSTR lpOutputString)
+	{
+		// guard against messages that came through the detoured "Warning/Msg" funcs as these were already printed to the console
+		if (lpOutputString && !globals::detoured_warning_fn_origin && !globals::detoured_msg_fn_origin) {
+			common::log("Game:Dbg >", lpOutputString, common::LOG_TYPE::LOG_TYPE_DEFAULT, false, false, true);
+		}
+
+		// og func
+		if (OriginalOutputDebugStringA) {
+			OriginalOutputDebugStringA(lpOutputString);
+		}
+	}
+
+	inline void WINAPI HookedOutputDebugStringW(LPCWSTR lpOutputString)
+	{
+		if (lpOutputString)
+		{
+			char buffer[1024];
+			WideCharToMultiByte(CP_UTF8, 0, lpOutputString, -1, buffer, sizeof(buffer), NULL, NULL);
+
+			// guard against messages that came through the detoured "Warning/Msg" funcs as these were already printed to the console
+			if (!globals::detoured_warning_fn_origin && !globals::detoured_msg_fn_origin) {
+				common::log("Game:Dbg >", buffer, common::LOG_TYPE::LOG_TYPE_DEFAULT, true, false, true);
+			}
+		}
+
+		// og func
+		if (OriginalOutputDebugStringW) {
+			OriginalOutputDebugStringW(lpOutputString);
+		}
+	}
+
+	inline void SetupDebugOutputHook()
+	{
+		if (MH_CreateHook(&OutputDebugStringA, &HookedOutputDebugStringA, reinterpret_cast<LPVOID*>(&OriginalOutputDebugStringA)) != MH_OK)
+		{
+			common::log("Functions", "Failed to create hook for OutputDebugStringA", common::LOG_TYPE::LOG_TYPE_ERROR);
+			return;
+		}
+
+		if (MH_CreateHook(&OutputDebugStringW, &HookedOutputDebugStringW, reinterpret_cast<LPVOID*>(&OriginalOutputDebugStringW)) != MH_OK)
+		{
+			common::log("Functions", "Failed to create hook for OutputDebugStringW", common::LOG_TYPE::LOG_TYPE_ERROR);
+			return;
+		}
+
+		if (MH_EnableHook(&OutputDebugStringA) != MH_OK || MH_EnableHook(&OutputDebugStringW) != MH_OK)
+		{
+			common::log("Functions", "Failed to enable hooks for OutputDebugStringA & OutputDebugStringW", common::LOG_TYPE::LOG_TYPE_ERROR);
+			return;
+		}
+	}
 }

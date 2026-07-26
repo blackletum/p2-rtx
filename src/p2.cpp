@@ -22,8 +22,6 @@ namespace p2
 			main_module::hud_draw_area_info();
 		}, false);
 
-		game_settings::delayed_init();
-
 		common::loader::module_loader::register_module(std::make_unique<interfaces>());
 		common::loader::module_loader::register_module(std::make_unique<imgui>());
 		common::loader::module_loader::register_module(std::make_unique<game_settings>());
@@ -35,6 +33,8 @@ namespace p2
 		common::loader::module_loader::register_module(std::make_unique<map_settings>());
 		common::loader::module_loader::register_module(std::make_unique<model_render>());
 		common::loader::module_loader::register_module(std::make_unique<main_module>());
+
+		game_settings::delayed_init();
 
 		MH_EnableHook(MH_ALL_HOOKS);
 	}

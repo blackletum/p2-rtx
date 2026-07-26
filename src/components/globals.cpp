@@ -74,4 +74,7 @@ namespace globals
 
 	std::chrono::high_resolution_clock::time_point last_frame_time;
 	float frame_time_ms = 0.0f;
+
+	bool detoured_warning_fn_origin = false;
+	bool detoured_msg_fn_origin = false;
 }

@@ -4,11 +4,14 @@
 #define _CRT_SECURE_NO_WARNINGS
 #define WIN32_LEAN_AND_MEAN
 
+#define COMPMOD_ASSET_DIR "\\portal2-rtx\\"
+
 constexpr auto COMP_MOD_VERSION_MAJOR = 2;
-constexpr auto COMP_MOD_VERSION_MINOR = 3;
+constexpr auto COMP_MOD_VERSION_MINOR = 4;
 constexpr auto COMP_MOD_VERSION_PATCH = 0;
 
-#define COMPMOD_ASSET_DIR "\\portal2-rtx\\"
+// adjust for pre-release builds
+constexpr auto COMP_MOD_PRE_RELEASE_NUM = 0;
 
 // enable/disable benchmark logic
 //#define BENCHMARK
