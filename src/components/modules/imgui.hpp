@@ -81,6 +81,8 @@ namespace components
 		void tab_general();
 		void tab_map_settings();
 		void tab_game_settings();
+		void tab_dev();
+		void tab_about();
 		bool m_im_window_focused = false;
 		bool m_im_window_hovered = false;
 		bool m_im_allow_game_input = false;

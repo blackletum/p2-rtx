@@ -47,31 +47,32 @@ namespace components
 
 	namespace tex_addons
 	{
-		LPDIRECT3DTEXTURE9 portal_mask;
-		LPDIRECT3DTEXTURE9 portal_blue;
-		LPDIRECT3DTEXTURE9 portal_blue_overlay;
-		LPDIRECT3DTEXTURE9 portal_blue_closed;
-		LPDIRECT3DTEXTURE9 portal_orange;
-		LPDIRECT3DTEXTURE9 portal_orange_overlay;
-		LPDIRECT3DTEXTURE9 portal_orange_closed;
-		LPDIRECT3DTEXTURE9 portal_red;
-		LPDIRECT3DTEXTURE9 portal_purple;
-		LPDIRECT3DTEXTURE9 glass_shards;
-		LPDIRECT3DTEXTURE9 glass_window_lamps;
-		LPDIRECT3DTEXTURE9 glass_window_observ;
-		LPDIRECT3DTEXTURE9 black_shader;
-		LPDIRECT3DTEXTURE9 blue_laser_dualrender;
-		LPDIRECT3DTEXTURE9 sky_gray_ft;
-		LPDIRECT3DTEXTURE9 sky_gray_bk;
-		LPDIRECT3DTEXTURE9 sky_gray_lf;
-		LPDIRECT3DTEXTURE9 sky_gray_rt;
-		LPDIRECT3DTEXTURE9 sky_gray_up;
-		LPDIRECT3DTEXTURE9 sky_gray_dn;
-		LPDIRECT3DTEXTURE9 emancipation_grill;
-		LPDIRECT3DTEXTURE9 emancipation_grill_bg;
-		LPDIRECT3DTEXTURE9 emancipation_grill_emissive;
-		LPDIRECT3DTEXTURE9 water_drip;
-		LPDIRECT3DTEXTURE9 white;
+		LPDIRECT3DTEXTURE9 portal_mask = nullptr;
+		LPDIRECT3DTEXTURE9 portal_blue = nullptr;
+		LPDIRECT3DTEXTURE9 portal_blue_overlay = nullptr;
+		LPDIRECT3DTEXTURE9 portal_blue_closed = nullptr;
+		LPDIRECT3DTEXTURE9 portal_orange = nullptr;
+		LPDIRECT3DTEXTURE9 portal_orange_overlay = nullptr;
+		LPDIRECT3DTEXTURE9 portal_orange_closed = nullptr;
+		LPDIRECT3DTEXTURE9 portal_red = nullptr;
+		LPDIRECT3DTEXTURE9 portal_purple = nullptr;
+		LPDIRECT3DTEXTURE9 glass_shards = nullptr;
+		LPDIRECT3DTEXTURE9 glass_window_lamps = nullptr;
+		LPDIRECT3DTEXTURE9 glass_window_observ = nullptr;
+		LPDIRECT3DTEXTURE9 black_shader = nullptr;
+		LPDIRECT3DTEXTURE9 blue_laser_dualrender = nullptr;
+		LPDIRECT3DTEXTURE9 sky_gray_ft = nullptr;
+		LPDIRECT3DTEXTURE9 sky_gray_bk = nullptr;
+		LPDIRECT3DTEXTURE9 sky_gray_lf = nullptr;
+		LPDIRECT3DTEXTURE9 sky_gray_rt = nullptr;
+		LPDIRECT3DTEXTURE9 sky_gray_up = nullptr;
+		LPDIRECT3DTEXTURE9 sky_gray_dn = nullptr;
+		LPDIRECT3DTEXTURE9 emancipation_grill = nullptr;
+		LPDIRECT3DTEXTURE9 emancipation_grill_bg = nullptr;
+		LPDIRECT3DTEXTURE9 emancipation_grill_emissive = nullptr;
+		LPDIRECT3DTEXTURE9 water_drip = nullptr;
+		LPDIRECT3DTEXTURE9 white = nullptr;
+		LPDIRECT3DTEXTURE9 berry = nullptr;
 	}
 
 	// #TODO call from somewhere appropriate
@@ -115,15 +116,12 @@ namespace components
 
 				HRESULT hr;
 				hr = D3DXCreateTextureFromFileA(dev, file_path.c_str(), tex);
-				if (FAILED(hr))
-				{
+				if (FAILED(hr)) {
 					common::log("Renderer", std::format("Failed to load {}", file_path), common::LOG_TYPE::LOG_TYPE_ERROR, true);
-					//MessageBoxA(nullptr, std::format("Failed to load required addon texture {}.\nFile is either missing or init failed. Please retry!", file_path).c_str(), "Error", MB_ICONERROR);
 				}
 			};
 
 		const auto dev = game::get_d3d_device();
-
 		load_texture(dev, "portal_mask.png", &tex_addons::portal_mask);
 		load_texture(dev, "portal_blue.png", &tex_addons::portal_blue);
 		load_texture(dev, "portal_blue_overlay.png", &tex_addons::portal_blue_overlay);
@@ -149,6 +147,7 @@ namespace components
 		load_texture(dev, "emancipation_grill_emissive.png", &tex_addons::emancipation_grill_emissive);
 		load_texture(dev, "water_drip.png", &tex_addons::water_drip);
 		load_texture(dev, "white.dds", &tex_addons::white);
+		load_texture(dev, "berry.png", &tex_addons::berry);
 	}
 
 	// check for specific material var and return it in 'out_var'

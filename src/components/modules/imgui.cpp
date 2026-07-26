@@ -30,6 +30,13 @@ extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM, LPARAM);
 #define CHILD_WIDGET_WIDTH 180.0f
 #define CWIDGETWIDTH SET_CHILD_WIDGET_WIDTH_MAN(CHILD_WIDGET_WIDTH);
 
+#define CENTER_URL(text, link)					\
+	ImGui::SetCursorForCenteredText((text));	\
+	ImGui::TextURL((text), (link), true);
+
+constexpr float TREENODE_SPACING = 6.0f;
+constexpr float TREENODE_SPACING_INSIDE = 6.0f;
+
 namespace components
 {
 	WNDPROC g_game_wndproc = nullptr;
@@ -484,75 +491,43 @@ namespace components
 		common::imgui::cvar_toggle_button_bool("sv_portal_placement_never_fail", "Portal Placement Never Fails", three_row_button_size, "sv_portal_placement_never_fail :: Allows you to shoot portals anywhere");
 
 
-#if DEBUG
+		ImGui::Spacing(0, 8);
+		ImGui::SeparatorTextLarge(" Screenshot / HUD Settings ");
+
 		{
-			const auto im = imgui::get();
-
-			ImGui::Spacing(0, 8);
-			if (ImGui::CollapsingHeader("DEBUG Build Section", ImGuiTreeNodeFlags_SpanFullWidth))
+			// button toggling both options
+			const auto r_drawviewmodel = game::find_cvar_const("r_drawviewmodel");
+			const auto r_drawvgui = game::find_cvar_const("r_drawvgui");
+			if (r_drawviewmodel && r_drawvgui)
 			{
-				ImGui::Checkbox("Disable R_CullNode", &im->m_disable_cullnode);
-				ImGui::Checkbox("Enable Area Forcing", &im->m_enable_area_forcing);
-				ImGui::Checkbox("Disable MS Unbake", &im->m_disable_ms_unbake_check);
-
-				if (ImGui::SliderInt("Paint Sampler Index", &im->m_debug_paint_sampler_index, 0, 15)) {
-					im->m_debug_paint_sampler_index = std::clamp(im->m_debug_paint_sampler_index, 0, 15);
+				const bool is_active = !(r_drawviewmodel->m_Value.m_nValue && r_drawvgui->m_Value.m_nValue);
+				if (is_active)
+				{
+					ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_TabSelected));
+					ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyleColorVec4(ImGuiCol_TabHovered));
+					ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetStyleColorVec4(ImGuiCol_TabSelected));
 				}
 
-				ImGui::Spacing(0, 6);
-
-				// TODO
-				/*const auto bridge_api = &common::remix_api::get().m_bridge;
-
-				if (ImGui::Button("Add Texture Hash (ignore Textures)(PortalGun)", ImVec2(ImGui::GetContentRegionAvail().x * 0.49f, 0))) {
-					bridge_api->AddTextureHash("rtx.ignoreTextures", "0x990C1CCB42F806E0");
+				if (ImGui::Button("Toggle Screenshot Mode", ImVec2(ImGui::GetContentRegionAvail().x, 38)))
+				{
+					const char* screenshot_mode_str = is_active ? "1" : "0";
+					interfaces::get()->m_engine->execute_client_cmd_unrestricted(utils::va("sv_cheats 1; r_drawviewmodel %s; r_drawvgui %s", screenshot_mode_str, screenshot_mode_str));
 				}
-				ImGui::SameLine();
-				if (ImGui::Button("Remove Texture Hash (ignore Textures)(PortalGun)", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
-					bridge_api->RemoveTextureHash("rtx.ignoreTextures", "0x990C1CCB42F806E0");
-				}*/
 
-				ImGui::Spacing(0, 6);
-
-				ImGui::DragFloat3("Debug Vector", &im->m_debug_vector.x, 0.01f);
-				ImGui::DragFloat3("Debug Vector 2", &im->m_debug_vector2.x, 0.01f);
-				ImGui::DragFloat3("Debug Vector 3", &im->m_debug_vector3.x, 0.01f);
-				ImGui::DragFloat3("Debug Vector 4", &im->m_debug_vector4.x, 0.01f);
-				ImGui::DragFloat3("Debug Vector 5", &im->m_debug_vector5.x, 0.01f);
-				ImGui::DragFloat3("Debug Vector 6", &im->m_debug_vector6.x, 0.01f);
-
-				ImGui::DragFloat("Debug Float 1", &im->m_debug_float01, 0.01f);
-				ImGui::DragFloat("Debug Float 2", &im->m_debug_float02, 0.01f);
-				ImGui::DragFloat("Debug Float 3", &im->m_debug_float03, 0.01f);
-
-				ImGui::Checkbox("Debug Bool 0", &im->m_debug_bool00);
-				ImGui::Checkbox("Debug Bool 1", &im->m_debug_bool01);
-				ImGui::Checkbox("Debug Bool 2", &im->m_debug_bool02);
-				ImGui::Checkbox("Debug Bool 3", &im->m_debug_bool03);
-				ImGui::Checkbox("Debug Bool 4", &im->m_debug_bool04);
-				ImGui::Checkbox("Debug Bool 5", &im->m_debug_bool05);
-
-				ImGui::Spacing(0, 6);
-
-				const auto coloredit_flags = ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_PickerHueBar | ImGuiColorEditFlags_Float;
-
-				SET_CHILD_WIDGET_WIDTH; ImGui::ColorEdit4("ContainerBg", &im->ImGuiCol_ContainerBackground.x, coloredit_flags);
-				SET_CHILD_WIDGET_WIDTH; ImGui::ColorEdit4("ContainerBorder", &im->ImGuiCol_ContainerBorder.x, coloredit_flags);
-
-				SET_CHILD_WIDGET_WIDTH; ImGui::ColorEdit4("ButtonGreen", &im->ImGuiCol_ButtonGreen.x, coloredit_flags);
-				SET_CHILD_WIDGET_WIDTH; ImGui::ColorEdit4("ButtonYellow", &im->ImGuiCol_ButtonYellow.x, coloredit_flags);
-				SET_CHILD_WIDGET_WIDTH; ImGui::ColorEdit4("ButtonRed", &im->ImGuiCol_ButtonRed.x, coloredit_flags);
-
-				ImGui::Spacing(0, 6);
-
-				const auto glob = game::get_global_vars();
-				ImGui::Text("Realtime: %.4f", glob->realtime);
-				ImGui::Text("Curtime Abs: %.4f", glob->curtime);
-				ImGui::Text("Frametime Abs: %.4f", glob->absoluteframetime);
-				ImGui::Text("Frametime: %.4f", glob->frametime);
+				if (is_active) {
+					ImGui::PopStyleColor(3);
+				}
 			}
+
+			// single options
+			common::imgui::cvar_toggle_button_bool("r_drawviewmodel", "Hide Viewmodel", three_row_button_size, "r_drawviewmodel :: Toggle viewmodel drawing", true);
+
+			ImGui::SameLine();
+			common::imgui::cvar_toggle_button_int("hidehud", "Hide HUD", three_row_button_size, "hidehud :: Toggle In-Game HUD drawing", 0, 4);
+
+			ImGui::SameLine();
+			common::imgui::cvar_toggle_button_bool("r_drawvgui", "Hide VGui", three_row_button_size, "r_drawvgui :: Toggle UI drawing", true);
 		}
-#endif
 	}
 
 	void imgui::tab_general()
@@ -3804,6 +3779,159 @@ namespace components
 	// #
 	// #
 
+	void cont_debug()
+	{
+		const auto im = imgui::get();
+
+		ImGui::Spacing(0, TREENODE_SPACING);
+		if (ImGui::CollapsingHeader("Functionalities ...", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			ImGui::Spacing(0, TREENODE_SPACING_INSIDE);
+			ImGui::Indent(6);
+
+			
+			ImGui::Checkbox("Disable R_CullNode", &im->m_disable_cullnode);
+			ImGui::Checkbox("Enable Area Forcing", &im->m_enable_area_forcing);
+			ImGui::Checkbox("Disable MS Unbake", &im->m_disable_ms_unbake_check);
+
+			if (ImGui::SliderInt("Paint Sampler Index", &im->m_debug_paint_sampler_index, 0, 15)) {
+				im->m_debug_paint_sampler_index = std::clamp(im->m_debug_paint_sampler_index, 0, 15);
+			}
+
+			ImGui::Unindent(6);
+		}
+
+		ImGui::Spacing(0, TREENODE_SPACING);
+		if (ImGui::CollapsingHeader("Temp Values and Settings ..."))
+		{
+			ImGui::Spacing(0, TREENODE_SPACING_INSIDE);
+			ImGui::Indent(6);
+
+			ImGui::DragFloat4("Debug Vec 01", &im->m_debug_vector.x, 0.05f);
+			ImGui::DragFloat4("Debug Vec 02", &im->m_debug_vector2.x, 0.05f);
+			ImGui::DragFloat4("Debug Vec 03", &im->m_debug_vector3.x, 0.05f);
+			ImGui::DragFloat4("Debug Vec 04", &im->m_debug_vector4.x, 0.05f);
+			ImGui::DragFloat4("Debug Vec 05", &im->m_debug_vector5.x, 0.05f);
+			ImGui::DragFloat4("Debug Vec 06", &im->m_debug_vector6.x, 0.05f);
+			ImGui::Spacing(0, 4);
+
+			ImGui::DragFloat("Debug Float 01", &im->m_debug_float01, 0.05f);
+			ImGui::DragFloat("Debug Float 02", &im->m_debug_float02, 0.05f);
+			ImGui::DragFloat("Debug Float 03", &im->m_debug_float03, 0.05f);
+			ImGui::Spacing(0, 4);
+
+			ImGui::Checkbox("Debug Bool 01", &im->m_debug_bool01);
+			ImGui::Checkbox("Debug Bool 02", &im->m_debug_bool01);
+			ImGui::Checkbox("Debug Bool 03", &im->m_debug_bool01);
+			ImGui::Checkbox("Debug Bool 04", &im->m_debug_bool01);
+			ImGui::Spacing(0, 4);
+
+			const auto coloredit_flags = ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_PickerHueBar | ImGuiColorEditFlags_Float;
+			SET_CHILD_WIDGET_WIDTH; ImGui::ColorEdit4("ContainerBg", &im->ImGuiCol_ContainerBackground.x, coloredit_flags);
+			SET_CHILD_WIDGET_WIDTH; ImGui::ColorEdit4("ContainerBorder", &im->ImGuiCol_ContainerBorder.x, coloredit_flags);
+			SET_CHILD_WIDGET_WIDTH; ImGui::ColorEdit4("ButtonGreen", &im->ImGuiCol_ButtonGreen.x, coloredit_flags);
+			SET_CHILD_WIDGET_WIDTH; ImGui::ColorEdit4("ButtonYellow", &im->ImGuiCol_ButtonYellow.x, coloredit_flags);
+			SET_CHILD_WIDGET_WIDTH; ImGui::ColorEdit4("ButtonRed", &im->ImGuiCol_ButtonRed.x, coloredit_flags);
+
+			ImGui::Spacing(0, 6);
+			ImGui::Unindent(6);
+		}
+	}
+
+	void imgui::tab_dev()
+	{
+		static const auto& im = imgui::get();
+		{
+			static float cont_debug_height = 0.0f;
+			cont_debug_height = ImGui::Widget_ContainerWithCollapsingTitle("DEBUG Section", cont_debug_height, cont_debug,
+				true, ICON_FA_TERMINAL, &im->ImGuiCol_ContainerBackground, &im->ImGuiCol_ContainerBorder);
+		}
+	}
+
+	// #
+	// #
+
+	void imgui::tab_about()
+	{
+		if (tex_addons::berry)
+		{
+			const float cursor_y = ImGui::GetCursorPosY();
+			ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() * 0.85f, 24));
+			ImGui::Image((ImTextureID)tex_addons::berry, ImVec2(48.0f, 48.0f), ImVec2(0.03f, 0.03f), ImVec2(0.96f, 0.96f));
+			ImGui::SetCursorPosY(cursor_y);
+		}
+
+		ImGui::Spacing(0.0f, 20.0f);
+
+		ImGui::PushFont(common::imgui::font::BOLD_LARGE);
+		ImGui::CenterText("Portal 2 - RTX REMIX COMPATIBILITY MOD");
+		ImGui::PopFont();
+		ImGui::CenterText("                      by #xoxor4d");
+
+		ImGui::Spacing(0.0f, 24.0f);
+		ImGui::CenterText("current version");
+
+		const char* version_str = nullptr;
+		if constexpr (COMP_MOD_PRE_RELEASE_NUM != 0)
+		{
+			version_str = utils::va("%d.%d.%d - Pre-Release %d :: %s",
+				COMP_MOD_VERSION_MAJOR, COMP_MOD_VERSION_MINOR, COMP_MOD_VERSION_PATCH, COMP_MOD_PRE_RELEASE_NUM, __DATE__);
+		}
+		else
+		{
+			version_str = utils::va("%d.%d.%d :: %s",
+				COMP_MOD_VERSION_MAJOR, COMP_MOD_VERSION_MINOR, COMP_MOD_VERSION_PATCH, __DATE__);
+		}
+
+
+		ImGui::PushFont(common::imgui::font::BOLD_LARGE);
+		ImGui::CenterText(version_str);
+
+#if DEBUG
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.64f, 0.23f, 0.18f, 1.0f));
+		ImGui::CenterText("DEBUG BUILD");
+		ImGui::PopStyleColor();
+#endif
+		ImGui::PopFont();
+
+		ImGui::Spacing(0.0f, 16.0f);
+		CENTER_URL("GitHub Repository", "https://github.com/xoxor4d/p2-rtx");
+		CENTER_URL("GitHub Project Page", "https://xoxor4d.github.io/projects/p2-rtx");
+		CENTER_URL("Latest build", "https://github.com/xoxor4d/p2-rtx/releases");
+
+		ImGui::Spacing(0.0f, 16.0f);
+		ImGui::Separator();
+		ImGui::Spacing(0.0f, 16.0f);
+
+		const char* credits_title_str = "Credits / Thanks to:";
+		ImGui::PushFont(common::imgui::font::BOLD_LARGE);
+		ImGui::CenterText(credits_title_str);
+		ImGui::PopFont();
+
+		ImGui::Spacing(0.0f, 8.0f);
+
+		CENTER_URL("NVIDIA - RTX Remix", "https://github.com/NVIDIAGameWorks/rtx-remix");
+		CENTER_URL("People of the showcase discord", "https://discord.gg/j6sh7JD3v9");
+		CENTER_URL("Dear Imgui", "https://github.com/ocornut/imgui");
+		CENTER_URL("Imgui Blur Effect", "https://github.com/3r4y/imgui-blur-effect");
+		CENTER_URL("Minhook", "https://github.com/TsudaKageyu/minhook");
+		CENTER_URL("Toml11", "https://github.com/ToruNiina/toml11");
+		CENTER_URL("dxwrapper", "https://github.com/elishacloud/dxwrapper");
+		CENTER_URL("Miniz", "https://github.com/richgel999/miniz");
+		CENTER_URL("WolfeStrider", "https://github.com/WolfeStrider");
+
+		ImGui::Spacing(0.0f, 24.0f);
+		ImGui::CenterText("And of course, all my fellow Ko-Fi and Patreon supporters");
+		ImGui::CenterText("and all the people that helped along the way.");
+		ImGui::Spacing(0.0f, 4.0f);
+		ImGui::PushFont(common::imgui::font::BOLD_LARGE);
+		ImGui::CenterText("Thank you!");
+		ImGui::PopFont();
+	}
+
+	// #
+	// #
+
 	void imgui::devgui()
 	{
 		ImGui::SetNextWindowSize(ImVec2(900, 800), ImGuiCond_FirstUseEver);
@@ -3867,6 +3995,8 @@ namespace components
 			ADD_TAB("General", tab_general);
 			ADD_TAB("Map Settings", tab_map_settings);
 			ADD_TAB("Game Settings", tab_game_settings);
+			ADD_TAB("Dev", tab_dev);
+			ADD_TAB("About", tab_about);
 			ImGui::EndTabBar();
 		}
 		else {
