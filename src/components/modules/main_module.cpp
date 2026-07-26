@@ -395,10 +395,10 @@ namespace components
 	{
 		int player_team_num = 0;
 
-		const auto base_player = p2::GetSplitScreenViewPlayer(); //utils::hook::call<C_BaseEntity*(__cdecl)()>(CLIENT_BASE + USE_OFFSET(0x17B8B0, 0x176460))(); // 0125 // GetSplitScreenViewPlayer
+		const auto base_player = p2::GetSplitScreenViewPlayer();
 		if (base_player)
 		{
-			const auto portal_player = p2::ToPortalPlayer(base_player); //utils::hook::call<void* (__cdecl)(C_BaseEntity*)>(CLIENT_BASE + USE_OFFSET(0x3FEE0, 0x14BF30))(base_player); // 0125 // ToPortalPlayer
+			const auto portal_player = p2::ToPortalPlayer(base_player);
 			if (portal_player) {
 				player_team_num = base_player->m_iTeamNum;
 			}
@@ -595,13 +595,9 @@ namespace components
 		auto leaf_node = &world->leafs[leaf_index];
 		auto parent_node_index = &leaf_node->parent[0] - &world->nodes[0];
 
-		if (!hide)
-		{
-			// force leaf vis
-			leaf_node->visframe = game::get_visframecount();
-		}
-		else
-		{
+		if (!hide) {
+			leaf_node->visframe = game::get_visframecount(); // force leaf vis
+		} else {
 			leaf_node->visframe = 0;
 		}
 
@@ -847,9 +843,7 @@ namespace components
 		{
 			for (auto i = 0; i < world->numleafs; i++)
 			{
-				if (auto& l = world->leafs[i];
-					(int)l.area == g_current_area)
-				{
+				if (auto& l = world->leafs[i]; (int)l.area == g_current_area) {
 					force_leaf_vis(i);
 				}
 			}
@@ -868,8 +862,7 @@ namespace components
 						{
 							// visualize near-by leafs that are part of area overrides (RED)
 							if (const auto	forced_leaf = &world->leafs[i];
-								lt.areas.contains((std::uint32_t)forced_leaf->area)
-								|| lt.leafs.contains(i))
+								lt.areas.contains((std::uint32_t)forced_leaf->area) || lt.leafs.contains(i))
 							{
 								force_leaf_vis(i);
 							}
@@ -944,17 +937,6 @@ namespace components
 				if (trigger_transition)
 				{
 					bool can_add_transition = true;
-
-					// do not allow the same transition twice
-					/*for (const auto& ip : remix_vars::interpolate_stack)
-					{
-						if (ip.identifier == t->hash)
-						{
-							can_add_transition = false;
-							break;
-						}
-					}*/
-
 					if (can_add_transition)
 					{
 						remix_vars::parse_and_apply_conf_with_lerp(
@@ -1132,7 +1114,7 @@ namespace components
 		if (is_monitor)
 		{
 			// R_CullNode - uses area frustums if avail. and not in a solid - uses player frustum otherwise 
-			if (!utils::hook::call<bool(__cdecl)(mnode_t*)>(ENGINE_BASE + USE_OFFSET(0x10F950, 0x10E7E0))(node)) { // 0125
+			if (!p2::R_CullNode(node)) {
 				return 0;
 			}
 
@@ -1157,8 +1139,7 @@ namespace components
 			// calculate index of leaf/node
 			if (node->contents >= 0) { // this is a leaf
 				node_index = (mleaf_t*)node - &game::get_hoststate_worldbrush_data()->leafs[0];
-			}
-			else { // this is a node
+			} else { // this is a node
 				node_index = node - &game::get_hoststate_worldbrush_data()->nodes[0];
 			}
 
@@ -1170,9 +1151,7 @@ namespace components
 				for (const auto& hidden_area : g_player_current_area_override->hide_areas)
 				{
 					// check if node is part of a hidden area but only cull if the player is not in a specified leaf
-					if (hidden_area.areas.contains((std::uint32_t)node->area)
-						&& !hidden_area.when_not_in_leafs.contains(g_current_leaf))
-					{
+					if (hidden_area.areas.contains((std::uint32_t)node->area) && !hidden_area.when_not_in_leafs.contains(g_current_leaf)) {
 						return 1;
 					}
 				}
@@ -1215,8 +1194,7 @@ namespace components
 		}
 
 		// if no area override or if cull mode is distance based
-		if (!g_player_current_area_override
-			|| using_distance_based_mode)
+		if (!g_player_current_area_override || using_distance_based_mode)
 		{
 			if (is_aabb_within_distance(node->m_vecCenter, node->m_vecHalfDiagonal, *game::get_current_view_origin(), nocull_dist)) {
 				return 0;
@@ -1232,8 +1210,7 @@ namespace components
 		}
 
 		// MODE: force all leafs/nodes in CURRENT area
-		else if (cmode == map_settings::AREA_CULL_MODE_NO_FRUSTUM_IN_CURRENT_AREA
-			|| cmode == map_settings::AREA_CULL_MODE_FORCE_AREA)
+		else if (cmode == map_settings::AREA_CULL_MODE_NO_FRUSTUM_IN_CURRENT_AREA || cmode == map_settings::AREA_CULL_MODE_FORCE_AREA)
 		{
 			// force draw this node/leaf if it's within the forced area
 			if ((int)node->area == g_current_area) {
@@ -1243,7 +1220,7 @@ namespace components
 
 
 		// R_CullNode - uses area frustums if avail. and not in a solid - uses player frustum otherwise
-		if (!utils::hook::call<bool(__cdecl)(mnode_t*)>(ENGINE_BASE + USE_OFFSET(0x10F950, 0x10E7E0))(node)) { // 0125
+		if (!p2::R_CullNode(node)) {
 			return 0;
 		}
 
@@ -1436,15 +1413,14 @@ namespace components
 					const auto player_area = g_current_area;
 
 					// tweakable portal visibility check (culling area at exit portal might lead to light leaks or light deletion through the entry portal)
-					bool ignore_portal_vis_check = !game_settings::get()->portal_visibility_culling.get_as<bool>()
-						&& portal_area == player_area; // only disable vis check for the portal that is not in the player area
+					bool ignore_portal_vis_check =  !game_settings::get()->portal_visibility_culling.get_as<bool>()
+													&& portal_area == player_area; // only disable vis check for the portal that is not in the player area
 
 					// check if player is in-front of portal
-					if (ignore_portal_vis_check 
-						|| (g_player_view_org - p->portal->m_ptOrigin).Dot(p->portal->m_vForward) >= -0.1f)
+					if (ignore_portal_vis_check || (g_player_view_org - p->portal->m_ptOrigin).Dot(p->portal->m_vForward) >= -0.1f)
 					{
 						// check if portal is in player frustum or very close (frustum check can fail when halfway in the portal)
-						if (ignore_portal_vis_check 
+						if (   ignore_portal_vis_check 
 							|| (g_player_view_org - p->portal->m_ptOrigin).LengthSqr() < (330.0f) 
 							|| is_portal_in_frustum(game::get_g_frustum(), p->portal->m_InternallyMaintainedData.m_ptCorners))
 						{
@@ -1458,14 +1434,15 @@ namespace components
 							game::frustum_set_planes(&frustum, planes);
 
 							portal_frustums.emplace_back(
-								std::move(frustum),
+								frustum,
 								0.001f, 1.0f, 179.99f, 179.99f, // znear, zfar, fov x and y
 								p->portal->m_pLinkedPortal);
 
 							//CPortalRenderable_FlatBasic::AddToVisAsExitPortal(CPortalRenderable_FlatBasic * this, ViewCustomVisibility_t * pCustomVisibility)
 							// this affects 'g_RenderAreaBits' (custom vis argument)
-							utils::hook::call<void(__fastcall)(void* this_ptr, void* null, ViewCustomVisibility_t*)>(CLIENT_BASE + USE_OFFSET(0x2C2DC0, 0x2BBDA0)) // 0125
-								(p->portal->m_pLinkedPortal, nullptr, vis);
+
+							//utils::hook::call<void(__fastcall)(void* this_ptr, void* null, ViewCustomVisibility_t*)>(CLIENT_BASE + USE_OFFSET(0x2C2DC0, 0x2BBDA0)) // 0125
+							p2::CPortalRenderable__AddToVisAsExitPortal(p->portal->m_pLinkedPortal, nullptr, vis);
 
 							return true;
 						}
@@ -1506,8 +1483,8 @@ namespace components
 		model_render::linked_area_portals.clear();  
 
 		// CViewRender::ViewDrawScene
-		utils::hook::call<void(__fastcall)(void* this_ptr, void* null, bool, int, const CViewSetup*, int, int, bool, int, ViewCustomVisibility_t*)>(CLIENT_BASE + USE_OFFSET(0x1EDFA0, 0x1E84E0)) // 0125
-			(view_renderer, nullptr, bDrew3dSkybox, nSkyboxVisible, view, nClearFlags, viewID, bDrawViewModel, baseDrawFlags, is_using_custom_vis ? &customVisibility : nullptr);
+		//utils::hook::call<void(__fastcall)(void* this_ptr, void* null, bool, int, const CViewSetup*, int, int, bool, int, ViewCustomVisibility_t*)>(CLIENT_BASE + USE_OFFSET(0x1EDFA0, 0x1E84E0)) // 0125
+		p2::CViewRender__ViewDrawScene(view_renderer, nullptr, bDrew3dSkybox, nSkyboxVisible, view, nClearFlags, viewID, bDrawViewModel, baseDrawFlags, is_using_custom_vis ? &customVisibility : nullptr);
 	}
 
 	HOOK_RETN_PLACE_DEF(viewdrawscene_push_args_retn);
@@ -1648,7 +1625,7 @@ namespace components
 		const auto current_leaf = game::get_leaf_from_position(*game::get_current_view_origin());
 
 		// CM_LeafArea :: get current area the camera is in
-		g_current_area_all_views = utils::hook::call<int(__cdecl)(int leafnum)>(ENGINE_BASE + USE_OFFSET(0x15ACE0, 0x159470))(current_leaf); // 0125
+		g_current_area_all_views = p2::CM_LeafArea(current_leaf);
 
 		// we only calc vis for portals when we render the main view (ignore monitors etc.)
 		const auto view_id = game::get_current_view_id();
@@ -1697,8 +1674,7 @@ namespace components
 					// 'portal_frustums' holds exit portal data of a visible entry portal (eg. looking at blue -> f = orange)
 					for (auto& f : portal_frustums)
 					{
-						if (const auto p = f.portal;
-							p && p->m_pLinkedPortal)
+						if (const auto p = f.portal; p && p->m_pLinkedPortal)
 						{
 							// save visible area count before checking which areas are visible from the portals POV
 							int visible_area_count_player = *g_nVisibleAreas;
@@ -1741,8 +1717,8 @@ namespace components
 								//VMatrix world2proj = {};
 
 								// ComputeViewMatrices - override w2s (w2s_ptr)
-								utils::hook::call<void(__cdecl)(VMatrix* pWorldToView, VMatrix* pViewToProjection, VMatrix* pWorldToProjection, const CViewSetup* viewSetup)>(ENGINE_BASE + USE_OFFSET(0xDDE10, 0xDD4A0)) // 0125
-									(&world2view, &view2proj, w2s_ptr /*&world2proj*/, &view_copy);
+								//utils::hook::call<void(__cdecl)(VMatrix* pWorldToView, VMatrix* pViewToProjection, VMatrix* pWorldToProjection, const CViewSetup* viewSetup)>(ENGINE_BASE + USE_OFFSET(0xDDE10, 0xDD4A0)) // 0125
+								p2::ComputeViewMatrices(&world2view, &view2proj, w2s_ptr /*&world2proj*/, &view_copy);
 
 								// the w2s matrix is holding the WorldToProjection matrix .. 
 								// ComputeWorldToScreenMatrix
@@ -2068,8 +2044,7 @@ namespace components
 		// This fixes a game breaking bug where a surface on a3_crazy_box is not visible and not gel-able
 		if (map_settings::is_level.sp_a3_crazy_box || game_settings::get()->use_brushfastpath.get_as<bool>()) {
 			game::cvar_uncheat_and_set_int("cl_brushfastpath", 1);
-		}
-		else {
+		} else {
 			game::cvar_uncheat_and_set_int("cl_brushfastpath", 0);
 		}
 
@@ -2180,39 +2155,39 @@ namespace components
 		// events
 
 		// CModelLoader::Map_LoadModel :: called on map load
-		utils::hook(ENGINE_BASE + USE_OFFSET(0xFD8FC, 0xFCD5C), on_map_load_stub).install()->quick(); // 0125
-		HOOK_RETN_PLACE(on_map_load_stub_retn, ENGINE_BASE + USE_OFFSET(0xFD901, 0xFCD61)); // 0125
+		utils::hook(p2::hk_addr__on_map_load, on_map_load_stub).install()->quick();
+		HOOK_RETN_PLACE(on_map_load_stub_retn, p2::hk_addr__on_map_load + 5u);
 
 		// Host_Disconnect :: called on map unload
-		utils::hook(ENGINE_BASE + USE_OFFSET(0x19A3E1, 0x197DF1), on_host_disconnect_stub).install()->quick(); // 0125
-		HOOK_RETN_PLACE(on_host_disconnect_retn, ENGINE_BASE + USE_OFFSET(0x19A3E6, 0x197DF6)); // 0125
+		utils::hook(p2::hk_addr__on_host_disconnect, on_host_disconnect_stub).install()->quick();
+		HOOK_RETN_PLACE(on_host_disconnect_retn, p2::hk_addr__on_host_disconnect + 5u);
 
-		utils::hook(ENGINE_BASE + USE_OFFSET(0x19620D, 0x193C6D), on_host_change_level_stub).install()->quick(); // 0125
-		HOOK_RETN_PLACE(on_host_change_level_retn, ENGINE_BASE + USE_OFFSET(0x196212, 0x193C72)); // 0125
+		utils::hook(p2::hk_addr__on_host_change_level, on_host_change_level_stub).install()->quick();
+		HOOK_RETN_PLACE(on_host_change_level_retn, p2::hk_addr__on_host_change_level + 5u);
 
 
 		// CViewRender::RenderView :: "start" of current frame (after CViewRender::DrawMonitors)
-		utils::hook::nop(CLIENT_BASE + USE_OFFSET(0x1F2885, 0x1ECDC5), 7); // 0125
-		utils::hook(CLIENT_BASE + USE_OFFSET(0x1F2885, 0x1ECDC5), cviewrenderer_renderview_stub).install()->quick(); // 0125
-		HOOK_RETN_PLACE(cviewrenderer_renderview_retn, CLIENT_BASE + USE_OFFSET(0x1F288C, 0x1ECDCC)); // 0125
+		utils::hook::nop(p2::hk_addr__cviewrenderer_renderview, 7);
+		utils::hook(p2::hk_addr__cviewrenderer_renderview, cviewrenderer_renderview_stub).install()->quick();
+		HOOK_RETN_PLACE(cviewrenderer_renderview_retn, p2::hk_addr__cviewrenderer_renderview + 7u);
 
 		// CViewRender::DrawOneMonitor
-		utils::hook(CLIENT_BASE + USE_OFFSET(0x1EEDB4, 0x1E92F4), cviewrenderer_drawonemonitor_stub).install()->quick(); // 0125
-		HOOK_RETN_PLACE(cviewrenderer_drawonemonitor_retn, CLIENT_BASE + USE_OFFSET(0x1EEDB9, 0x1E92F9)); // 0125
+		utils::hook(p2::hk_addr__cviewrenderer_drawonemonitor, cviewrenderer_drawonemonitor_stub).install()->quick();
+		HOOK_RETN_PLACE(cviewrenderer_drawonemonitor_retn, p2::hk_addr__cviewrenderer_drawonemonitor + 5u);
 
 		// #
 		// culling
 
 		// stub before calling 'R_RecursiveWorldNode' to override node/leaf vis
-		utils::hook(ENGINE_BASE + USE_OFFSET(0xE76CD, 0xE6D6D), pre_recursive_world_node_stub, HOOK_JUMP).install()->quick(); // 0125
-		HOOK_RETN_PLACE(pre_recursive_world_node_retn, ENGINE_BASE + USE_OFFSET(0xE76D2, 0xE6D72)); // 0125
+		utils::hook(p2::hk_addr__pre_recursive_world_node, pre_recursive_world_node_stub, HOOK_JUMP).install()->quick();
+		HOOK_RETN_PLACE(pre_recursive_world_node_retn, p2::hk_addr__pre_recursive_world_node + 5u);
 
 		// ^ :: xnode->visframe == r_visframecount check - check for rectangular cuboids that could match emissive lights
-		utils::hook::nop(ENGINE_BASE + USE_OFFSET(0xE7246, 0xE68E6), 9); // 0125
-		utils::hook(ENGINE_BASE + USE_OFFSET(0xE7246, 0xE68E6), while_recursive_world_node_stub, HOOK_JUMP).install()->quick(); // 0125
-		HOOK_RETN_PLACE(while_recursive_world_node_og_retn, ENGINE_BASE + USE_OFFSET(0xE73A2, 0xE6A42)); // 0125
-		HOOK_RETN_PLACE(while_recursive_world_node_cullnode_retn, ENGINE_BASE + USE_OFFSET(0xE7255, 0xE68F5)); // 0125
-		HOOK_RETN_PLACE(while_recursive_world_node_force_retn, ENGINE_BASE + USE_OFFSET(0xE726B, 0xE690B)); // 0125
+		utils::hook::nop(p2::hk_addr__while_recursive_world_node, 9);
+		utils::hook(p2::hk_addr__while_recursive_world_node, while_recursive_world_node_stub, HOOK_JUMP).install()->quick();
+		HOOK_RETN_PLACE(while_recursive_world_node_og_retn, p2::hk_addr__while_recursive_world_node_og_retn); // E73A2
+		HOOK_RETN_PLACE(while_recursive_world_node_cullnode_retn, p2::hk_addr__while_recursive_world_node + 15u); // E7255
+		HOOK_RETN_PLACE(while_recursive_world_node_force_retn, p2::hk_addr__while_recursive_world_node_force_retn); // E726B
 
 		// ^ :: while( ... node->contents < -1 .. ) -> jl to jle
 		utils::hook::set<BYTE>(ENGINE_BASE + USE_OFFSET(0xE7258, 0xE68F8), 0x7E); // 0125
