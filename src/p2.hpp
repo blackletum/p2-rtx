@@ -12,7 +12,7 @@ namespace p2
 
 
 	// - client
-
+	extern Vector4D* s_viewFadeColor;
 
 	// - shaderapidx9
 

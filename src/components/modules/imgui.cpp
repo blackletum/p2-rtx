@@ -767,14 +767,13 @@ namespace components
 		// MARKER TABLE
 
 		ImGui::TableHeaderDropshadow();
-		if (ImGui::BeginTable("MarkerTable", 10,
+		if (ImGui::BeginTable("MarkerTable", 9,
 			ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_ContextMenuInBody |
 			ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable | ImGuiTableFlags_NoSavedSettings | ImGuiTableFlags_ScrollY, ImVec2(0, 380)))
 		{
 			ImGui::TableSetupScrollFreeze(0, 1); // make top row always visible
 			ImGui::TableSetupColumn("#", ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_NoHide, 12.0f);
 			ImGui::TableSetupColumn("Num", ImGuiTableColumnFlags_NoResize, 24.0f);
-			ImGui::TableSetupColumn("NC", ImGuiTableColumnFlags_NoResize, 24.0f);
 			ImGui::TableSetupColumn("Areas", ImGuiTableColumnFlags_WidthStretch, 80.0f);
 			ImGui::TableSetupColumn("NLeafs", ImGuiTableColumnFlags_WidthStretch, 80.0f);
 			ImGui::TableSetupColumn("Comment", ImGuiTableColumnFlags_WidthStretch, 200.0f);
@@ -832,10 +831,6 @@ namespace components
 				// - marker num
 				ImGui::TableNextColumn();
 				ImGui::Text("%d", m.index);
-
-				// - nocull
-				ImGui::TableNextColumn();
-				ImGui::TextUnformatted(m.no_cull ? "x" : "");
 
 				// - Area Input
 				ImGui::TableNextColumn();
@@ -944,7 +939,7 @@ namespace components
 			}
 
 			markers.emplace_back(map_settings::marker_settings_s{
-					free_marker, *game::get_current_view_origin() - Vector(0,0,1), true
+					free_marker, *game::get_current_view_origin() - Vector(0,0,1)
 				});
 
 			selection = &markers.back();
@@ -960,7 +955,6 @@ namespace components
 				markers.emplace_back(map_settings::marker_settings_s{
 					.index = selection->index,
 					.origin = selection->origin,
-					.no_cull = selection->no_cull,
 					.rotation = selection->rotation,
 					.scale = selection->scale,
 					.areas = selection->areas,
@@ -1000,21 +994,11 @@ namespace components
 		{
 			int temp_num = (int)selection->index;
 
-			if (!selection->no_cull)
-			{
-				ImGui::CenterText("- Only 'NoCull' support live editing - ");
-				ImGui::CenterText("- Save and reload MapSettings to see changes - ");
-				ImGui::Spacing(0, 6);
-			}
-
 			SET_CHILD_WIDGET_WIDTH;
 			if (ImGui::DragInt("Number", &temp_num, 0.1f, 0))
 			{
 				if (temp_num < 0) {
 					temp_num = 0;
-				}
-				else if (!selection->no_cull && temp_num > 99) {
-					temp_num = 99;
 				}
 
 				selection->index = (std::uint32_t)temp_num;
@@ -1035,7 +1019,6 @@ namespace components
 				selection->rotation = { DEG2RAD(temp_rot.x), DEG2RAD(temp_rot.y), DEG2RAD(temp_rot.z) };
 			} ImGui::PopStyleVar();
 
-			if (selection->no_cull) 
 			{
 				ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.6f, 0.5f));
 				ImGui::Widget_PrettyDragVec3("Scale", &selection->scale.x, true, 80.0f, 0.01f,

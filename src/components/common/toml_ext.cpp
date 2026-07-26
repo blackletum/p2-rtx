@@ -166,9 +166,8 @@ namespace common::toml_ext
 				toml_str += "\n        # " + m.comment + "\n";
 			}
 			
-			toml_str += "        { " + (m.no_cull ? "nocull = "s : "marker = "s) + std::to_string(m.index);
+			toml_str += "        { " + "nocull = "s + std::to_string(m.index);
 
-			if (m.no_cull)
 			{
 				toml_str += ", areas = [";
 				for (auto it = m.areas.begin(); it != m.areas.end(); ++it)
@@ -193,11 +192,7 @@ namespace common::toml_ext
 
 			toml_str += ", position = [" + format_float(m.origin.x) + ", " + format_float(m.origin.y) + ", " + format_float(m.origin.z) + "]";
 			toml_str += ", rotation = [" + format_float(RAD2DEG(m.rotation.x)) + ", " + format_float(RAD2DEG(m.rotation.y)) + ", " + format_float(RAD2DEG(m.rotation.z)) + "]";
-
-			if (m.no_cull) {
-				toml_str += ", scale = [" + format_float(m.scale.x) + ", " + format_float(m.scale.y) + ", " + format_float(m.scale.z) + "]";
-			}
-
+			toml_str += ", scale = [" + format_float(m.scale.x) + ", " + format_float(m.scale.y) + ", " + format_float(m.scale.z) + "]";
 			toml_str += " },\n";
 		}
 		toml_str += "    ]";

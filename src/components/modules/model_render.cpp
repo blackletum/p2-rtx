@@ -433,11 +433,6 @@ namespace components
 
 		for (auto& m : msettings.map_markers)
 		{
-			// ignore normal markers
-			if (!m.no_cull) {
-				continue;
-			}
-
 			// main_module::pre_recursive_world_node
 			if (m.is_hidden) {
 				continue;
@@ -2035,7 +2030,7 @@ namespace components
 					// do not fog HUD elements :D
 					dev->SetRenderState(D3DRS_FOGENABLE, FALSE);
 
-					const auto s_viewFadeColor = reinterpret_cast<Vector4D*>(CLIENT_BASE + USE_OFFSET(0x9F7748, 0x9EDAF8)); // 0125
+					const auto s_viewFadeColor = p2::s_viewFadeColor; //reinterpret_cast<Vector4D*>(CLIENT_BASE + USE_OFFSET(0x9F7748, 0x9EDAF8));
 
 					/*const auto s_viewFadeModulate = reinterpret_cast<bool*>(CLIENT_BASE + USE_OFFSET(0x0, 0x9ECEE0));
 					if (s_viewFadeModulate && *s_viewFadeModulate)
@@ -3715,8 +3710,7 @@ namespace components
 #if 1
 	void cmeshdx8_renderpass_pass_for_instances_pre_draw(CMeshDX8* mesh, MeshInstanceData_t* info)
 	{
-		if (mesh && info)
-		{
+		if (mesh && info) {
 			cmeshdx8_renderpass_pre_draw(mesh, nullptr, info);
 		}
 	}

@@ -24,7 +24,7 @@ namespace p2
 
 
 	// - client
-
+	Vector4D* s_viewFadeColor = nullptr;
 
 	// - shaderapidx9
 
@@ -195,6 +195,7 @@ namespace p2
 
 		// --------------------------
 		// - client - variables
+		PATTERN_OFFSET_DWORD_PTR_CAST_TYPE(CLIENT_MOD, s_viewFadeColor, Vector4D*, "81 C1 ? ? ? ? ? ? ? ? 0F 57 C9", 2, USE_OFFSET(0x1E0D83, 0x1DB213));
 
 		// - client - functions
 		PATTERN_OFFSET_SIMPLE_CAST(CLIENT_MOD, GetSplitScreenViewPlayer, GetSplitScreenViewPlayer_t, "8B 0D ? ? ? ? ? ? 8B 90 ? ? ? ? FF D2 50 E8 ? ? ? ? 83 C4 ? C3", 0, USE_OFFSET(0x17B8B0, 0x176460));

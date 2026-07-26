@@ -108,7 +108,6 @@ namespace components
 		main_module::force_cvars();
 
 		// TODO - find better spot to call this
-		map_settings::spawn_markers_once();
 		model_render::draw_nocull_markers(); 
 
 		// CM_PointLeafnum :: get current leaf
@@ -877,8 +876,7 @@ namespace components
 		{
 			for (auto& m : map_settings.map_markers)
 			{
-				// ignore normal markers
-				if (!m.no_cull || m.areas.empty()) {
+				if (m.areas.empty()) {
 					continue;
 				}
 
