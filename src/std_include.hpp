@@ -90,8 +90,8 @@ constexpr auto COMP_MOD_PRE_RELEASE_NUM = 0;
 
 #include "components/common/console.hpp"
 #include "components/common/loader.hpp"
-#include "game/functions.hpp"
 #include "p2.hpp"
+#include "game/functions.hpp"
 
 #include "sdk/engine/c_engine_client.hpp"
 #include "sdk/vgui/surface/c_surface_mgr.hpp"

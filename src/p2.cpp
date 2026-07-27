@@ -21,13 +21,29 @@ namespace p2
 
 
 	// - engine
-
+	int* r_visframecount = nullptr;
+	int* visible_areas_num = nullptr;
+	std::uint16_t* visible_areas = nullptr;
+	bool* viewer_in_solid_space = nullptr;
+	CPortalRect* area_rect = nullptr;
+	DWORD* area_frustum = nullptr;
+	Frustum_t* g_frustum = nullptr;
+	DWORD* engine_renderer_ptr = nullptr;
+	DWORD* hoststate_worldbrush_data_ptr = nullptr;
+	DWORD* cstatic_prop_mgr_ptr = nullptr;
+	Vector* current_view_origin = nullptr;
+	Vector* current_view_forward = nullptr;
+	DWORD* cclientstate_ptr = nullptr;
 
 	// - client
 	Vector4D* s_viewFadeColor = nullptr;
+	DWORD* global_vars_ptr = nullptr;
+	view_id* current_view_id = nullptr;
+	DWORD* puzzlemaker_ptr = nullptr;
 
 	// - shaderapidx9
-
+	DWORD* d3d_device_ptr = nullptr;
+	DWORD* shaderapi_ptr = nullptr;
 
 	// -------------------------------------------
 	// game functions
@@ -39,6 +55,8 @@ namespace p2
 	R_CullNode_t R_CullNode = nullptr;
 	CM_LeafArea_t CM_LeafArea = nullptr;
 	ComputeViewMatrices_t ComputeViewMatrices = nullptr;
+	GetBaseLocalClient_t GetBaseLocalClient = nullptr;
+	CClientState__IsPaused_t CClientState__IsPaused = nullptr;
 
 	// - client
 	GetSplitScreenViewPlayer_t GetSplitScreenViewPlayer = nullptr;
@@ -81,6 +99,12 @@ namespace p2
 	uint32_t mod_addr__cstaticpropmgr_update_prop_visibility = 0u;
 	uint32_t nop_addr__cstaticpropmgr_update_prop_visibility = 0u;
 	uint32_t hk_addr__on_start_sound = 0u;
+	uint32_t fn_addr__debug_overlay_add_text = 0u;
+	uint32_t fn_addr__debug_overlay_add_text_colored = 0u;
+	uint32_t fn_addr__r_flow_through_area = 0u;
+	uint32_t fn_addr__frustum_set_planes = 0u;
+	uint32_t fn_addr__frustum_cull_box = 0u;
+	uint32_t fn_addr__cm_point_leaf_num = 0u;
 
 	// - client
 	uint32_t hk_addr__cviewrenderer_renderview = 0u;
@@ -102,6 +126,11 @@ namespace p2
 	uint32_t mod_addr__envprojectedtexture_should_update = 0u;
 	uint32_t hk_addr__cviewrenderer_init_fade_data = 0u;
 	uint32_t mod_addr__cbaseentity_should_draw = 0u;
+	uint32_t fn_addr__add_console_cmd = 0u;
+	uint32_t fn_addr__get_map_name = 0u;
+	uint32_t fn_addr__get_bone_transform = 0u;
+	uint32_t fn_addr__lookup_bone = 0u;
+	uint32_t fn_addr__get_model_ptr = 0u;
 
 	// - shaderapidx9
 	uint32_t nop_addr__cshadermgr_set_pixel_shader = 0u;
@@ -130,6 +159,8 @@ namespace p2
 	void init_game_addresses()
 	{
 		const bool use_pattern = !common::flags::has_flag("no_pattern") && IS_LATEST_BUILD;
+		const bool validate_patterns = common::flags::has_flag("validate_patterns");
+
 		if (use_pattern) {
 			common::log("P2", "Getting offsets ...", common::LOG_TYPE::LOG_TYPE_DEFAULT, false);
 		}
@@ -156,11 +187,38 @@ namespace p2
 
 		// --------------------------
 		// - engine - variables
+		PATTERN_OFFSET_DWORD_PTR_CAST_TYPE(ENGINE_MOD, r_visframecount, int*, "3B 05 ? ? ? ? 0F 85 ? ? ? ? 56", 2, USE_OFFSET(0xE0483, 0xDFB33));
+		PATTERN_OFFSET_DWORD_PTR_CAST_TYPE(ENGINE_MOD, visible_areas_num, int*, "8B 0D ? ? ? ? 89 45 ? A1 ? ? ? ? 89 55 ? 8B 15 ? ? ? ? 33 F6", 2, USE_OFFSET(0x10F08C, 0x10E13E)); // ENGINE_BASE + USE_OFFSET(0x61ABE0, 0x615468)
+		PATTERN_OFFSET_DWORD_PTR_CAST_TYPE(ENGINE_MOD, visible_areas, std::uint16_t*, "0F B7 0C 75", 4, USE_OFFSET(0x10F0DD, 0x10E188)); // ENGINE_BASE + USE_OFFSET(0x61ABE8, 0x615470)
+		PATTERN_OFFSET_DWORD_PTR_CAST_TYPE(ENGINE_MOD, viewer_in_solid_space, bool*, "80 3D ? ? ? ? ? 8B 4D", 2, USE_OFFSET(0x10F953, 0x10E7E3)); // ENGINE_BASE + USE_OFFSET(0x61C228, 0x616AB0)
+		PATTERN_OFFSET_DWORD_PTR_CAST_TYPE(ENGINE_MOD, area_rect, CPortalRect*, "05 ? ? ? ? ? ? ? ? F3 0F 10 70", 1, USE_OFFSET(0x10F102, 0x10E1B4)); // ENGINE_BASE + USE_OFFSET(0x61ADE8, 0x615670)
+		PATTERN_OFFSET_DWORD_PTR_CAST_TYPE(ENGINE_MOD, area_frustum, DWORD*, "A3 ? ? ? ? 89 35 ? ? ? ? 39 35", 1, USE_OFFSET(0x10FB1D, 0x10E9AD)); // ENGINE_BASE + USE_OFFSET(0x61C35C, 0x616BE4) + 0x10 to pElements
+		PATTERN_OFFSET_DWORD_PTR_CAST_TYPE(ENGINE_MOD, g_frustum, Frustum_t*, "B9 ? ? ? ? F3 0F 11 50", 1, USE_OFFSET(0xDE9EB, 0xE6378)); // ENGINE_BASE + USE_OFFSET(0x615390, 0x60FC20)
+		PATTERN_OFFSET_DWORD_PTR_CAST_TYPE(ENGINE_MOD, engine_renderer_ptr, DWORD*, "8B 0D ? ? ? ? ? ? 8B 50 ? FF D2 89 45 ? 8B 45", 2, USE_OFFSET(0x71126, 0x70D26)); // ENGINE_BASE + USE_OFFSET(0x615100, 0x60F880)
+		PATTERN_OFFSET_DWORD_PTR_CAST_TYPE(ENGINE_MOD, hoststate_worldbrush_data_ptr, DWORD*, "A1 ? ? ? ? 8D 48 ? 51 50 E8 ? ? ? ? A1", 1, USE_OFFSET(0x790B9, 0x78C89)); // ENGINE_BASE + USE_OFFSET(0x43F028, 0x439C1C)
+		
+		if constexpr (IS_LATEST_BUILD) // (ENGINE_BASE + USE_OFFSET(0x442998, 0x43D490)
+		{
+			if (auto offset = utils::mem::find_pattern(ENGINE_MOD, "E8 ? ? ? ? ? ? 8B C8 8B 42 ? 56 FF D0 84 C0", 0, "cstatic_prop_mgr_ptr", use_pattern, 0xCC22); offset) 
+			{
+				// pattern to fn call -> fn access of cstatic_prop_mgr_ptr at fn+1u
+				offset = utils::mem::resolve_relative_call_address(offset) + 1u;
+				cstatic_prop_mgr_ptr = (DWORD*)*(DWORD*)(offset); found_pattern_count++;
+			} total_pattern_count++;
+		} else {
+			cstatic_prop_mgr_ptr = (DWORD*)(ENGINE_BASE + 0x43D490);
+		}
+
+		PATTERN_OFFSET_DWORD_PTR_CAST_TYPE(ENGINE_MOD, current_view_origin, Vector*, "F3 0F 10 15 ? ? ? ? F3 0F 10 05 ? ? ? ? F3 0F 10 0D", 4, USE_OFFSET(0xD46C9, 0xD3E29)); // ENGINE_BASE + USE_OFFSET(0x513380, 0x50DB50)
+		PATTERN_OFFSET_DWORD_PTR_CAST_TYPE(ENGINE_MOD, current_view_forward, Vector*, "68 ? ? ? ? 68 ? ? ? ? E8 ? ? ? ? 83 C4 ? 56 B9", 1, USE_OFFSET(0xDE79F, 0xDDE2F)); // ENGINE_BASE + USE_OFFSET(0x4351D0, 0x42FFE4)
+		
 
 		// - engine - functions
 		PATTERN_OFFSET_SIMPLE_CAST(ENGINE_MOD, R_CullNode, R_CullNode_t, "55 8B EC 80 3D ? ? ? ? ? 8B 4D", 0, USE_OFFSET(0x10F950, 0x10E7E0));
 		PATTERN_OFFSET_SIMPLE_CAST(ENGINE_MOD, CM_LeafArea, CM_LeafArea_t, "55 8B EC 56 8B 75 ? 85 F6 78 ? 3B 35 ? ? ? ? 7C ? 68 ? ? ? ? FF 15 ? ? ? ? 83 C4 ? A1 ? ? ? ? 03 F6 66 8B 4C F0", 0, USE_OFFSET(0x15ACE0, 0x159470));
 		PATTERN_OFFSET_SIMPLE_CAST(ENGINE_MOD, ComputeViewMatrices, ComputeViewMatrices_t, "55 8B EC 0F 57 C9 F3 0F 10 15", 0, USE_OFFSET(0xDDE10, 0xDD4A0));
+		PATTERN_OFFSET_SIMPLE_CAST(ENGINE_MOD, GetBaseLocalClient, GetBaseLocalClient_t, "A1 ? ? ? ? 83 C0 ? C3", 0, USE_OFFSET(0x9EAF0, 0x9E7E0));
+		PATTERN_OFFSET_SIMPLE_CAST(ENGINE_MOD, CClientState__IsPaused, CClientState__IsPaused_t, "80 B9 ? ? ? ? ? 75 ? 80 3D", 0, USE_OFFSET(0xAB850, 0xAB140));
 
 		// - engine - asm
 		PATTERN_OFFSET_SIMPLE(ENGINE_MOD, hk_addr__on_map_load, "8D 4F ? 33 D2", 0, USE_OFFSET(0xFD8FC, 0xFCD5C));
@@ -191,11 +249,53 @@ namespace p2
 		PATTERN_OFFSET_SIMPLE(ENGINE_MOD, mod_addr__cstaticpropmgr_update_prop_visibility, "78 ? 8A 47 ? 84 C0", 0, USE_OFFSET(0x1F02D0, 0x1ED3F0));
 		PATTERN_OFFSET_SIMPLE(ENGINE_MOD, nop_addr__cstaticpropmgr_update_prop_visibility, "75 ? 66 83 7F ? ? 74", 0, USE_OFFSET(0x1F035F, 0x1ED47F));
 		PATTERN_OFFSET_SIMPLE(ENGINE_MOD, hk_addr__on_start_sound, "8B C3 E8 ? ? ? ? 5F", 7, USE_OFFSET(0x1BF40, 0x1BD20));
+		PATTERN_OFFSET_SIMPLE(ENGINE_MOD, fn_addr__debug_overlay_add_text, "8B C3 E8 ? ? ? ? 5F", 0, USE_OFFSET(0x1BF40, 0xC3FE0));
 
+		if constexpr (IS_LATEST_BUILD)
+		{
+			if (const auto offset = utils::mem::find_pattern(ENGINE_MOD, "E8 ? ? ? ? 83 C4 ? 8B 0D ? ? ? ? ? ? 8B 52 ? 8D 85 ? ? ? ? 50 ? ? 57", 0, "fn_addr__debug_overlay_add_text", use_pattern, 0x1BC10); offset) 
+			{
+				fn_addr__debug_overlay_add_text = utils::mem::resolve_relative_call_address(offset); found_pattern_count++;
+				if (validate_patterns)
+				{
+					if (ENGINE_BASE + 0xC4640 == fn_addr__debug_overlay_add_text) {
+						log("Hook", std::format("> Pattern offset validated!", ENGINE_BASE + 0xC4640), common::LOG_TYPE::LOG_TYPE_GREEN, true);
+					} else {
+						log("Hook", std::format("> Pattern offset invalid!", ENGINE_BASE + 0xC4640), common::LOG_TYPE::LOG_TYPE_ERROR, true);
+					}
+				}
+			} total_pattern_count++;
+
+			if (const auto offset = utils::mem::find_pattern(ENGINE_MOD, "E8 ? ? ? ? 8B 46 ? 8B 48 ? 8B 73", 0, "fn_addr__debug_overlay_add_text_colored", use_pattern, 0xF18CB); offset)
+			{
+				fn_addr__debug_overlay_add_text_colored = utils::mem::resolve_relative_call_address(offset); found_pattern_count++;
+				if (validate_patterns)
+				{
+					if (ENGINE_BASE + 0xC4B30 == fn_addr__debug_overlay_add_text_colored) {
+						log("Hook", std::format("> Pattern offset validated!", ENGINE_BASE + 0xC4B30), common::LOG_TYPE::LOG_TYPE_GREEN, true);
+					} else {
+						log("Hook", std::format("> Pattern offset invalid!", ENGINE_BASE + 0xC4B30), common::LOG_TYPE::LOG_TYPE_ERROR, true);
+					}
+				}
+			} total_pattern_count++;
+		}
+		else
+		{
+			fn_addr__debug_overlay_add_text = ENGINE_BASE + 0xC3FE0;
+			fn_addr__debug_overlay_add_text_colored = ENGINE_BASE + 0xC4460;
+		}
+
+		PATTERN_OFFSET_SIMPLE(ENGINE_MOD, fn_addr__r_flow_through_area, "55 8B EC 8B 55 ? 8B 0D ? ? ? ? 81 EC", 0, USE_OFFSET(0x10FB70, 0x10EA00));
+		PATTERN_OFFSET_SIMPLE(ENGINE_MOD, fn_addr__frustum_set_planes, "55 8B EC 8B 55 ? 52", 0, USE_OFFSET(0x270090, 0x26CED0));
+		PATTERN_OFFSET_SIMPLE(ENGINE_MOD, fn_addr__frustum_cull_box, "53 8B DC 83 EC ? 83 E4 ? 83 C4 ? 55 8B 6B ? 89 6C 24 ? 8B EC 83 EC ? 8B 43 ? ? ? ? 8B 53", 0, USE_OFFSET(0x270140, 0x26CF80));
+		PATTERN_OFFSET_SIMPLE(ENGINE_MOD, fn_addr__cm_point_leaf_num, "55 8B EC 83 3D ? ? ? ? ? 75 ? 33 C0 5D C3 8B 45", 0, USE_OFFSET(0x159C80, 0x158540)); // ENGINE_BASE + USE_OFFSET(0x159C80, 0x158540)
 
 		// --------------------------
 		// - client - variables
 		PATTERN_OFFSET_DWORD_PTR_CAST_TYPE(CLIENT_MOD, s_viewFadeColor, Vector4D*, "81 C1 ? ? ? ? ? ? ? ? 0F 57 C9", 2, USE_OFFSET(0x1E0D83, 0x1DB213));
+		PATTERN_OFFSET_DWORD_PTR_CAST_TYPE(CLIENT_MOD, global_vars_ptr, DWORD*, "A1 ? ? ? ? F3 0F 10 48 ? F3 0F 5C 4D", 1, USE_OFFSET(0x411C5, 0x3E335)); // CLIENT_BASE + USE_OFFSET(0x92A37C, 0x9220BC)
+		PATTERN_OFFSET_DWORD_PTR_CAST_TYPE(CLIENT_MOD, current_view_id, view_id*, "89 3D ? ? ? ? FF D0 8B 0D", 2, USE_OFFSET(0x1E7D07, 0x1E22F7)); // CLIENT_BASE + USE_OFFSET(0x937F40, 0x92FB00)
+		PATTERN_OFFSET_DWORD_PTR_CAST_TYPE(CLIENT_MOD, puzzlemaker_ptr, DWORD*, "8B 0D ? ? ? ? ? ? 8B 90 ? ? ? ? FF D2 33 C9 84 C0 0F 94 C0", 2, USE_OFFSET(0xD1C40, 0xCE040)); // CLIENT_BASE + USE_OFFSET(0x94EAE8, 0x946438)
 
 		// - client - functions
 		PATTERN_OFFSET_SIMPLE_CAST(CLIENT_MOD, GetSplitScreenViewPlayer, GetSplitScreenViewPlayer_t, "8B 0D ? ? ? ? ? ? 8B 90 ? ? ? ? FF D2 50 E8 ? ? ? ? 83 C4 ? C3", 0, USE_OFFSET(0x17B8B0, 0x176460));
@@ -228,10 +328,28 @@ namespace p2
 		PATTERN_OFFSET_SIMPLE(CLIENT_MOD, mod_addr__envprojectedtexture_should_update, "32 C0 5E C3 E8 ? ? ? ? 8A 8E ? ? ? ? 84 C9 74 ? 0F B6 C9 49 3B C8 7F ? 8A 8E ? ? ? ? 84 C9 74 ? 0F B6 D1 4A 3B D0 7C ? B0", 0, USE_OFFSET(0x9E51C, 0x9AF1C));
 		PATTERN_OFFSET_SIMPLE(CLIENT_MOD, hk_addr__cviewrenderer_init_fade_data, "E8 ? ? ? ? C1 E0 ? 05", 0, USE_OFFSET(0x1E5673, 0x1DFC33));
 		PATTERN_OFFSET_SIMPLE(CLIENT_MOD, mod_addr__cbaseentity_should_draw, "74 ? 0F B6 C9 49 3B C8 7F ? 8A 8E ? ? ? ? 84 C9 74 ? 0F B6 D1 4A 3B D0 7C ? E8 ? ? ? ? 8A 8E ? ? ? ? 84 C9 74 ? 0F B6 C9 49 3B C8 7F ? 8A 8E ? ? ? ? 84 C9 74 ? 0F B6 D1 4A 3B D0 7C ? 83 7E", 0, USE_OFFSET(0x6EE3D, 0x6BC2D));
+		PATTERN_OFFSET_SIMPLE(CLIENT_MOD, fn_addr__add_console_cmd, "55 8B EC 8B 45 ? 53 33 DB 56 8B F1 8B 4D ? 80 66", 0, USE_OFFSET(0x632120, 0x6298D0));
+		PATTERN_OFFSET_SIMPLE(CLIENT_MOD, fn_addr__get_map_name, "8B 0D ? ? ? ? ? ? 8B 90 ? ? ? ? FF E2 56", 0, USE_OFFSET(0x1F4500, 0x1EEEE0));
+
+		PATTERN_OFFSET_SIMPLE(CLIENT_MOD, fn_addr__get_bone_transform, "55 8B EC 56 8B F1 83 BE ? ? ? ? ? 57 75 ? 8B 46 ? 8B 50 ? 8D 4E ? FF D2 85 C0 74 ? 8B CE E8 ? ? ? ? 8B 86", 0, USE_OFFSET(0x5F4E0, 0x5C380));
+		
+		if constexpr (IS_LATEST_BUILD)
+		{
+			if (const auto offset = utils::mem::find_pattern(CLIENT_MOD, "E8 ? ? ? ? 89 86 ? ? ? ? 83 BE ? ? ? ? ? 75 ? 8B 56", 0, "fn_addr__lookup_bone", use_pattern, 0x982C1); offset) {
+				fn_addr__lookup_bone = utils::mem::resolve_relative_call_address(offset); found_pattern_count++;
+			} total_pattern_count++;
+		} else {
+			fn_addr__lookup_bone = CLIENT_BASE + 0x59D30;
+		}
+
+		PATTERN_OFFSET_SIMPLE(CLIENT_MOD, fn_addr__get_model_ptr, "56 8B F1 83 BE ? ? ? ? ? 75 ? 8B 46 ? 8B 50 ? 8D 4E ? FF D2 85 C0 74 ? 8B CE E8 ? ? ? ? 8B 86 ? ? ? ? 5E 85 C0 74 ? ? ? ? 75 ? 33 C0 C3", 0, USE_OFFSET(0x3FEA0, 0x3D040));
+
 
 		// --------------------------
 		// - shaderapidx9 - variables
-		
+		PATTERN_OFFSET_DWORD_PTR_CAST_TYPE(RENDERER_MOD, d3d_device_ptr, DWORD*, "A1 ? ? ? ? 50 8B CE E8 ? ? ? ? 84 DB 5B 75 ? 8B 0D ? ? ? ? ? ? 8B 42 ? 6A ? FF D0 8A 4E ? 57", 1, USE_OFFSET(0x59CB, 0x57AB)); // RENDERER_BASE + USE_OFFSET(0xDA5D8, 0x179F38)
+		PATTERN_OFFSET_DWORD_PTR_CAST_TYPE(RENDERER_MOD, shaderapi_ptr, DWORD*, "8B 0D ? ? ? ? ? ? 8B 90 ? ? ? ? FF D2 ? ? 8B C8 8B 82 ? ? ? ? FF E0", 2, USE_OFFSET(0x62D0, 0x60E0)); // RENDERER_BASE + USE_OFFSET(0xD0C74, 0x164C48)
+
 
 		// - shaderapidx9 - functions
 		
