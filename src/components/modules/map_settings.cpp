@@ -8,6 +8,7 @@
 #include "remix_rayportal.hpp"
 #include "components/common/flags.hpp"
 #include "components/common/remix_api.hpp"
+
 #include "components/common/toml_ext.hpp"
 #include "toml11/parser.hpp"
 
@@ -30,11 +31,19 @@ namespace components
 				remix_vars::reset_all_modified();
 
 				// auto apply {map_name}.conf (if it exists)
-				open_and_set_var_config(m_map_settings.mapname + ".conf", true);
+				//open_and_set_var_config(m_map_settings.mapname + ".conf", true);
+				if (remix_vars::parse_and_apply_conf_with_lerp(m_map_settings.mapname + ".conf", 0xDEADBEEF, remix_vars::EASE_TYPE_LINEAR, 0.1f, true)) {
+					common::log("MapSettings", std::format("Applying config: {}", m_map_settings.mapname + ".conf"), common::LOG_TYPE::LOG_TYPE_DEFAULT, false);
+				}
+				
 
 				// apply other manually defined configs
-				for (const auto& f : m_map_settings.api_var_configs) {
-					open_and_set_var_config(f);
+				uint32_t count = 0u;
+				for (const auto& f : m_map_settings.api_var_configs) 
+				{
+					common::log("MapSettings", std::format("Applying config: {}", f), common::LOG_TYPE::LOG_TYPE_DEFAULT, false);
+					//open_and_set_var_config(f);
+					remix_vars::parse_and_apply_conf_with_lerp(f, ++count, remix_vars::EASE_TYPE_LINEAR, 0.1f);
 				}
 			}
 
@@ -83,12 +92,18 @@ namespace components
 		m_loaded = true;
 	}
 
+	
+	toml::value parse_toml_wrapper(const std::string& file_path)
+	{
+		return toml::parse(file_path, toml::spec::v(1, 1, 0));
+	}
+
 	bool map_settings::parse_toml()
 	{
 		try
 		{
 			const std::string file_path = globals::root_path + COMPMOD_ASSET_DIR "map_settings.toml";
-			auto config = toml::parse(file_path, toml::spec::v(1, 1, 0));
+			auto config = parse_toml_wrapper(file_path);
 
 			// ####################
 			// parse 'FOG' table
@@ -1240,12 +1255,6 @@ namespace components
 			path = custom_path;
 		}
 
-		if (!std::filesystem::exists(path + "\\" + config)) 
-		{
-			common::log("MapSettings", std::format("Failed to find config: '{}' in '{}'", config, custom_path ? custom_path : "'" COMPMOD_ASSET_DIR "map_configs'"), common::LOG_TYPE::LOG_TYPE_WARN, false);
-			return;
-		}
-
 		std::ifstream file;
 		if (utils::open_file_homepath(path, config, file))
 		{
@@ -1283,7 +1292,7 @@ namespace components
 			file.close();
 		}
 		else if (!no_error) {
-			common::log("MapSettings", std::format("Failed to open config: '{}' in '{}'", config, custom_path ? custom_path : "'" COMPMOD_ASSET_DIR "map_configs'"), common::LOG_TYPE::LOG_TYPE_ERROR, false);
+			common::log("MapSettings", std::format("Failed to find/open config: '{}' in '{}'", config, custom_path ? custom_path : "'" COMPMOD_ASSET_DIR "map_configs'"), common::LOG_TYPE::LOG_TYPE_ERROR, false);
 		}
 	}
 

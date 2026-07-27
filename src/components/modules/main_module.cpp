@@ -327,11 +327,9 @@ namespace components
 		// ----------
 
 		map_settings::on_map_unload();
+		remix_vars::on_map_unload();
 
-		// reload rtx.conf
-		//remix_vars::xo_vars_parse_options_fn();
-
-		// ^ no - reset all modified instead
+/*		// ^ no - reset all modified instead
 		if (common::remix_api::is_initialized())
 		{
 			for (auto& o : remix_vars::options)
@@ -340,7 +338,7 @@ namespace components
 					remix_vars::reset_option(&o);
 				}
 			}
-		}
+		}*/
 	}
 
 	HOOK_RETN_PLACE_DEF(on_host_disconnect_retn);

@@ -4,6 +4,12 @@
 #include "map_settings.hpp"
 #include "components/common/remix_api.hpp"
 
+#if DEBUG
+	#define DEBUG_PRINT(str) common::log("RemixVars DBG", (str), common::LOG_TYPE::LOG_TYPE_STATUS);
+#else
+	#define DEBUG_PRINT(str)
+#endif
+
 namespace components
 {
 	// checks if str is made up of numbers only
@@ -78,6 +84,9 @@ namespace components
 
 	remix_vars::option_handle remix_vars::add_custom_option(const std::string& name, const option_s& o)
 	{
+		std::unique_lock lock(get()->mutex_);
+		auto& custom_options = get()->custom_options;
+
 		custom_options[name] = o;
 
 		if (const auto it = custom_options.find(name); it != custom_options.end()) {
@@ -89,6 +98,9 @@ namespace components
 
 	remix_vars::option_handle remix_vars::get_custom_option(const char* o)
 	{
+		std::shared_lock lock(get()->mutex_);
+		auto& custom_options = get()->custom_options;
+
 		if (const auto it = custom_options.find(o); it != custom_options.end()) {
 			return &*it;
 		}
@@ -98,8 +110,10 @@ namespace components
 
 	remix_vars::option_handle remix_vars::get_custom_option(const std::string& o)
 	{
-		if (const auto it = custom_options.find(o); it != custom_options.end())
-		{
+		std::shared_lock lock(get()->mutex_);
+		auto& custom_options = get()->custom_options;
+
+		if (const auto it = custom_options.find(o); it != custom_options.end()) {
 			return &*it;
 		}
 
@@ -113,6 +127,9 @@ namespace components
 	 */
 	remix_vars::option_handle remix_vars::get_option(const char* o)
 	{
+		std::shared_lock lock(get()->mutex_);
+		auto& options = get()->options;
+
 		if (const auto it = options.find(o); it != options.end()) {
 			return &*it;
 		}
@@ -127,6 +144,9 @@ namespace components
 	 */
 	remix_vars::option_handle remix_vars::get_option(const std::string& o)
 	{
+		std::shared_lock lock(get()->mutex_);
+		auto& options = get()->options;
+
 		if (const auto it = options.find(o); it != options.end()) {
 			return &*it;
 		}
@@ -141,10 +161,16 @@ namespace components
 	 * @param is_level_setting	update the reset_level value (used if reset_option() is called with reset_to_level_state)
 	 * @return					true if successfull
 	 */
-	bool remix_vars::set_option(option_handle o, const option_value& v, const bool is_level_setting)
+	bool remix_vars::set_option(option_handle o, const option_value& v, const bool is_level_setting, const bool always)
 	{
 		if (o && common::remix_api::is_initialized())
 		{
+			std::unique_lock lock(get()->mutex_);
+
+			if (!always && o->second.current.compare(o->second.type, v, 0.001f)) {
+				return false;
+			}
+
 			o->second.current = v;
 
 			if (is_level_setting) {
@@ -184,7 +210,7 @@ namespace components
 				return true;
 			}
 
-			//DEBUG_PRINT("[RTX-SET-OPTION] Skipping unknown option type %d of option %s \n", (uint32_t) o->second.type, o->first.c_str());
+			DEBUG_PRINT("[set option] Skipping unknown option type: " + std::to_string(o->second.type) + " of option: " + o->first);
 		}
 
 		return false;
@@ -202,16 +228,21 @@ namespace components
 	{
 		if (o && common::remix_api::is_initialized())
 		{
-			o->second.current = reset_to_level_state ? o->second.reset_level : o->second.reset;
+			{
+				std::unique_lock lock(get()->mutex_);
+				o->second.current = reset_to_level_state ? o->second.reset_level : o->second.reset;
+			}
 
 			// should reset modified
-			set_option(o, o->second.current);
+			set_option(o, o->second.current, false, true);
 
-			if (!o->second.modified) {
+			if (!o->second.modified)
+			{
+				DEBUG_PRINT("[reset] Reset option: " + o->first);
 				return true;
 			}
 
-			//DEBUG_PRINT("[RTX-RESET-OPTION] Failed to reset option %s \n", o->first.c_str());
+			DEBUG_PRINT("[reset] Failed to reset option: " + o->first);
 		}
 
 		return false;
@@ -228,6 +259,8 @@ namespace components
 		if (common::remix_api::is_initialized())
 		{
 			auto count = 0u;
+			auto& options = get()->options;
+
 			for (auto& o : options)
 			{
 				if (o.second.modified)
@@ -238,7 +271,7 @@ namespace components
 				}
 			}
 
-			//DEBUG_PRINT("[RTX-RESET-ALL-OPTIONS] Reset %d options \n", count);
+			DEBUG_PRINT("[reset all] Reset " + std::to_string(count) + " options");
 		}
 	}
 
@@ -337,6 +370,9 @@ namespace components
 		std::ifstream file;
 		if (utils::open_file_homepath("", "rtx.conf", file))
 		{
+			std::unique_lock lock(get()->mutex_);
+			auto& options = get()->options;
+
 			std::string input;
 			while (std::getline(file, input))
 			{
@@ -366,8 +402,10 @@ namespace components
 	 * @param duration				duration of the transition (in seconds)
 	 * @param delay					delay transition start (in seconds)
 	 * @param delay_transition_back	delay between end of transition and transition back to the initial starting value (in seconds) - only active if value > 0
+	 * @param silent				no not found warning msg
+	 * @returns						true if config was parsed and applied
 	 */
-	void remix_vars::parse_and_apply_conf_with_lerp(const std::string& conf_name, const std::uint64_t& identifier, const EASE_TYPE ease, const float duration, const float delay, const float delay_transition_back)
+	bool remix_vars::parse_and_apply_conf_with_lerp(const std::string& conf_name, const std::uint64_t& identifier, const EASE_TYPE ease, const float duration, const float delay, const float delay_transition_back, bool silent)
 	{
 		std::ifstream file;
 		if (utils::open_file_homepath(COMPMOD_ASSET_DIR "map_configs", conf_name, file))
@@ -392,18 +430,21 @@ namespace components
 					if (const auto o = get_option(pair[0].c_str()); o)
 					{
 						const auto& v = string_to_option_value(o->second.type, pair[1]);
-
 						remix_vars::get()->add_interpolate_entry(identifier, o, v, duration, delay, delay_transition_back, ease);
-						//DEBUG_PRINT("[VAR-LERP] Start lerping var: %s to: %s\n", o->first.c_str(), pair[1].c_str());
+						DEBUG_PRINT("[lerp] Start lerping var: " + o->first + " to: " + pair[1]);
 					}
 				}
 			}
 
 			file.close();
+			return true;
 		}
-		else {
-			common::log("RemixVars", std::format("Failed to find config: '{}' in '{}'", conf_name, COMPMOD_ASSET_DIR "map_configs"), common::LOG_TYPE::LOG_TYPE_DEFAULT, false);
+
+		if (!silent) {
+			common::log("RemixVars", "Failed to find config: '"s + conf_name, common::LOG_TYPE::LOG_TYPE_WARN, false);
 		}
+
+		return false;
 	}
 
 
@@ -424,6 +465,7 @@ namespace components
 	  */
 	bool remix_vars::add_interpolate_entry(const std::uint64_t& identifier, option_handle handle, const option_value& goal, const float duration, const float delay, const float delay_transition_back, EASE_TYPE ease, const std::string& remix_var_name)
 	{
+		std::unique_lock lock(get()->mutex_);
 		option_handle h = handle;
 		if (!h)
 		{
@@ -437,7 +479,9 @@ namespace components
 		if (h)
 		{
 			// directly apply when no duration and no delay
-			if (duration == 0.0f && delay == 0.0f) {
+			if (duration == 0.0f && delay == 0.0f) 
+			{
+				lock.unlock();
 				set_option(handle, goal);
 			}
 
@@ -610,8 +654,22 @@ namespace components
 	// main_module::on_map_load_hk
 	void remix_vars::on_map_load()
 	{
-		remix_vars::custom_options.clear();
-		remix_vars::interpolate_stack.clear();
+		{
+			std::unique_lock lock(get()->mutex_);
+			remix_vars::get()->custom_options.clear();
+			remix_vars::interpolate_stack.clear();
+		}
+	}
+
+	void remix_vars::on_map_unload()
+	{
+		{
+			std::unique_lock lock(get()->mutex_);
+			remix_vars::get()->custom_options.clear();
+			remix_vars::interpolate_stack.clear();
+		}
+
+		reset_all_modified(false);
 	}
 
 	// Interpolates all variables on the 'interpolate_stack' and removes them once they reach their goal. \n
@@ -624,11 +682,9 @@ namespace components
 				// remove completed transitions - we do that in-front of the loop so that the final values (complete) can be used for the entire frame
 				auto completed_condition = [](const interpolate_entry_s& ip)
 					{
-						//if (ip._complete)
-						//{
-							//int break_me = 1;
-							//DEBUG_PRINT("[VAR-LERP] Complete: %s\n", ip.option->first.c_str());
-						//}
+						if (ip._complete) {
+							DEBUG_PRINT("[frame] Complete transition: " + ip.option->first);
+						}
 
 						return ip._complete;
 					};
@@ -751,7 +807,7 @@ namespace components
 					}
 
 					if (!ip.option->second.not_a_remix_var) {
-						remix_vars::get()->set_option(ip.option, ip.option->second.current, false);
+						remix_vars::get()->set_option(ip.option, ip.option->second.current, false, true);
 					}
 
 					// detect completion of first transition - check / setup backwards transition
@@ -824,17 +880,20 @@ namespace components
 	ConCommand xo_vars_parse_options_cmd{};
 	void remix_vars::xo_vars_parse_options_fn()
 	{
-		remix_vars::options.clear();
-		remix_vars::custom_options.clear();
+		{
+			std::unique_lock lock(get()->mutex_);
+			remix_vars::get()->options.clear();
+			remix_vars::get()->custom_options.clear();
+		}
+
 		remix_vars::parse_rtx_options();
 
 		// reset all settings to rtx.conf level (incl. runtime settings)
 		if (common::remix_api::is_initialized())
 		{
-			for (auto& o : remix_vars::options)
-			{
-				o.second.current = o.second.reset_level;
-				remix_vars::set_option(&o, o.second.current);
+			auto& options = get()->options;
+			for (auto& o : options) {
+				remix_vars::set_option(&o, o.second.current, false, true);
 			}
 		}
 	}
