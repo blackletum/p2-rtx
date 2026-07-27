@@ -151,7 +151,7 @@ namespace p2
 		PATTERN_OFFSET_SIMPLE(SERVER_MOD, hk_addr__scene_ent_on_finish_event, "8B 86 ? ? ? ? 85 C0 75 ? B8 ? ? ? ? F3 0F 10 86 ? ? ? ? 53", 0, USE_OFFSET(0x238483, 0x232273));
 		PATTERN_OFFSET_SIMPLE(SERVER_MOD, hk_addr__spawn_all_entities, "85 C0 74 ? 6A ? 50 E8 ? ? ? ? 83 C4 ? 85 C0", 0, USE_OFFSET(0x19FAA0, 0x19A870));
 		if (hk_addr__spawn_all_entities) {
-			retn_addr__spawn_all_entities = USE_OFFSET(utils::mem::resolve_relative_jump_address(hk_addr__spawn_all_entities + 2u, 2u, 1u), 0x19A8B4); found_pattern_count++;
+			retn_addr__spawn_all_entities = USE_OFFSET(utils::mem::resolve_relative_jump_address(hk_addr__spawn_all_entities + 2u, 2u, 1u), SERVER_BASE + 0x19A8B4); found_pattern_count++;
 		} total_pattern_count++;
 
 		// --------------------------
@@ -170,11 +170,11 @@ namespace p2
 		PATTERN_OFFSET_SIMPLE(ENGINE_MOD, hk_addr__while_recursive_world_node, "8B 4B ? 3B 0D", 0, USE_OFFSET(0xE7246, 0xE68E6));
 		
 		if (hk_addr__while_recursive_world_node) {
-			hk_addr__while_recursive_world_node_og_retn = USE_OFFSET(utils::mem::resolve_relative_jump_address(hk_addr__while_recursive_world_node + 9u, 6u, 2u), 0xE6A42); found_pattern_count++;
+			hk_addr__while_recursive_world_node_og_retn = USE_OFFSET(utils::mem::resolve_relative_jump_address(hk_addr__while_recursive_world_node + 9u, 6u, 2u), ENGINE_BASE + 0xE6A42); found_pattern_count++;
 		} total_pattern_count++;
 
 		if (hk_addr__while_recursive_world_node) {
-			hk_addr__while_recursive_world_node_force_retn = USE_OFFSET(utils::mem::resolve_relative_jump_address(hk_addr__while_recursive_world_node + 18u, 2u, 1u), 0xE690B); found_pattern_count++;
+			hk_addr__while_recursive_world_node_force_retn = USE_OFFSET(utils::mem::resolve_relative_jump_address(hk_addr__while_recursive_world_node + 18u, 2u, 1u), ENGINE_BASE + 0xE690B); found_pattern_count++;
 		} total_pattern_count++;
 
 		PATTERN_OFFSET_SIMPLE(ENGINE_MOD, mod_addr__while_recursive_world_node_01, "7C ? 53 E8 ? ? ? ? 83 C4 ? 84 C0 0F 85", 0, USE_OFFSET(0xE7258, 0xE68F8));
@@ -213,14 +213,14 @@ namespace p2
 		PATTERN_OFFSET_SIMPLE(CLIENT_MOD, hk_addr__draw_our_3rd_person_body_mesh, "E8 ? ? ? ? 84 C0 75 ? 8B 45 ? A8", 0, USE_OFFSET(0x27AEB4, 0x274FF4));
 		PATTERN_OFFSET_SIMPLE(CLIENT_MOD, hk_addr__draw_our_3rd_person_weapon_mesh, "83 C4 ? A1 ? ? ? ? ? ? 8B 45", 20, USE_OFFSET(0x98450, 0x950A0));
 		if (hk_addr__draw_our_3rd_person_weapon_mesh) {
-			fn_addr__draw_our_3rd_person_weapon_mesh = USE_OFFSET(utils::mem::resolve_relative_call_address(hk_addr__draw_our_3rd_person_weapon_mesh), 0x58710); found_pattern_count++;
+			fn_addr__draw_our_3rd_person_weapon_mesh = USE_OFFSET(utils::mem::resolve_relative_call_address(hk_addr__draw_our_3rd_person_weapon_mesh), CLIENT_BASE + 0x58710); found_pattern_count++;
 		} total_pattern_count++;
 
 		PATTERN_OFFSET_SIMPLE(CLIENT_MOD, hk_addr__viewdrawscene_push_args, "E8 ? ? ? ? ? ? 8B 42 ? 8B CF FF D0 C6 05", 0, USE_OFFSET(0x1F29C4, 0x1ECF04));
 		PATTERN_OFFSET_SIMPLE(CLIENT_MOD, hk_addr__cbaseworldview_draw_setup, "57 51 89 5D ? C7 05", 0, USE_OFFSET(0x1F105A, 0x1EB59A));
 		PATTERN_OFFSET_SIMPLE(CLIENT_MOD, hk_addr__cbaseentity_update_visibility, "80 7D ? ? 0F 84 ? ? ? ? 8B 0D ? ? ? ? ? ? 8B 82 ? ? ? ? 53 56", 0, USE_OFFSET(0x76466, 0x73076));
 		if (hk_addr__cbaseentity_update_visibility) {
-			hk_addr__cbaseentity_update_visibility_retn = USE_OFFSET(utils::mem::resolve_relative_jump_address(hk_addr__cbaseentity_update_visibility + 4u, 6u, 4u), 0x73105); found_pattern_count++;
+			hk_addr__cbaseentity_update_visibility_retn = USE_OFFSET(utils::mem::resolve_relative_jump_address(hk_addr__cbaseentity_update_visibility + 4u, 6u, 4u), CLIENT_BASE + 0x73105); found_pattern_count++;
 		} total_pattern_count++;
 
 		PATTERN_OFFSET_SIMPLE(CLIENT_MOD, nop_addr__cpropportal_create_attached_particles, "75 ? A1 ? ? ? ? 83 78 ? ? 0F 85 ? ? ? ? 68 ? ? ? ? 6A", 0, USE_OFFSET(0x28818D, 0x281FAD));
