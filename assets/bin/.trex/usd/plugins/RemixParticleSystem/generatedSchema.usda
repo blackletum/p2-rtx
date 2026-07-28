@@ -228,7 +228,7 @@ class "ParticleSystemAPI" (
                 }
             }
         }
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Color Times"
         doc = "Keyframe times [0-1] over particle lifetime for maxColor gradient."
     )
@@ -241,7 +241,7 @@ class "ParticleSystemAPI" (
                 }
             }
         }
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Color Values"
         doc = "Keyframe RGBA values for maxColor gradient."
     )
@@ -260,39 +260,39 @@ class "ParticleSystemAPI" (
         doc = "Maximum number of particles to simulate per emitter (or material) simultaneously. Lower values are more performant - tune this to your needs."
     )
     float[] primvars:particle:maxRotationSpeed:inTangentTimes = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Rotation Speed In Tangent Times"
         doc = "Time offsets for incoming tangent control points."
     )
     token[] primvars:particle:maxRotationSpeed:inTangentTypes = [] (
         allowedTokens = ["linear", "auto", "smooth", "flat", "step", "custom"]
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Rotation Speed In Tangent Types"
         doc = "Incoming tangent types for each keyframe."
     )
     float[] primvars:particle:maxRotationSpeed:inTangentValues = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Rotation Speed In Tangent Values"
         doc = "Value offsets for incoming tangent control points."
     )
     float[] primvars:particle:maxRotationSpeed:outTangentTimes = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Rotation Speed Out Tangent Times"
         doc = "Time offsets for outgoing tangent control points."
     )
     token[] primvars:particle:maxRotationSpeed:outTangentTypes = [] (
         allowedTokens = ["linear", "auto", "smooth", "flat", "step", "custom"]
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Rotation Speed Out Tangent Types"
         doc = "Outgoing tangent types for each keyframe."
     )
     float[] primvars:particle:maxRotationSpeed:outTangentValues = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Rotation Speed Out Tangent Values"
         doc = "Value offsets for outgoing tangent control points."
     )
     bool[] primvars:particle:maxRotationSpeed:tangentBrokens = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Rotation Speed Tangent Broken"
         doc = "Whether tangent is broken (in/out tangents are independent)."
     )
@@ -306,7 +306,7 @@ class "ParticleSystemAPI" (
                 }
             }
         }
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Rotation Speed Times"
         doc = "Keyframe times [0-1] for maxRotationSpeed animation."
     )
@@ -320,44 +320,44 @@ class "ParticleSystemAPI" (
                 }
             }
         }
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Rotation Speed Values"
         doc = "Keyframe values for maxRotationSpeed."
     )
     float[] primvars:particle:maxSize:x:inTangentTimes = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Size X In Tangent Times"
         doc = "Time offsets for incoming tangent control points."
     )
     token[] primvars:particle:maxSize:x:inTangentTypes = [] (
         allowedTokens = ["linear", "auto", "smooth", "flat", "step", "custom"]
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Size X In Tangent Types"
         doc = "Incoming tangent types for each keyframe."
     )
     float[] primvars:particle:maxSize:x:inTangentValues = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Size X In Tangent Values"
         doc = "Value offsets for incoming tangent control points."
     )
     float[] primvars:particle:maxSize:x:outTangentTimes = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Size X Out Tangent Times"
         doc = "Time offsets for outgoing tangent control points."
     )
     token[] primvars:particle:maxSize:x:outTangentTypes = [] (
         allowedTokens = ["linear", "auto", "smooth", "flat", "step", "custom"]
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Size X Out Tangent Types"
         doc = "Outgoing tangent types for each keyframe."
     )
     float[] primvars:particle:maxSize:x:outTangentValues = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Size X Out Tangent Values"
         doc = "Value offsets for outgoing tangent control points."
     )
     bool[] primvars:particle:maxSize:x:tangentBrokens = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Size X Tangent Broken"
         doc = "Whether tangent is broken (in/out tangents are independent)."
     )
@@ -371,7 +371,7 @@ class "ParticleSystemAPI" (
                 }
             }
         }
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Size X Times"
         doc = "Keyframe times [0-1] for maxSize X channel animation."
     )
@@ -385,44 +385,44 @@ class "ParticleSystemAPI" (
                 }
             }
         }
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Size X Values"
         doc = "Keyframe values for maxSize X channel."
     )
     float[] primvars:particle:maxSize:y:inTangentTimes = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Size Y In Tangent Times"
         doc = "Time offsets for incoming tangent control points."
     )
     token[] primvars:particle:maxSize:y:inTangentTypes = [] (
         allowedTokens = ["linear", "auto", "smooth", "flat", "step", "custom"]
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Size Y In Tangent Types"
         doc = "Incoming tangent types for each keyframe."
     )
     float[] primvars:particle:maxSize:y:inTangentValues = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Size Y In Tangent Values"
         doc = "Value offsets for incoming tangent control points."
     )
     float[] primvars:particle:maxSize:y:outTangentTimes = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Size Y Out Tangent Times"
         doc = "Time offsets for outgoing tangent control points."
     )
     token[] primvars:particle:maxSize:y:outTangentTypes = [] (
         allowedTokens = ["linear", "auto", "smooth", "flat", "step", "custom"]
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Size Y Out Tangent Types"
         doc = "Outgoing tangent types for each keyframe."
     )
     float[] primvars:particle:maxSize:y:outTangentValues = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Size Y Out Tangent Values"
         doc = "Value offsets for outgoing tangent control points."
     )
     bool[] primvars:particle:maxSize:y:tangentBrokens = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Size Y Tangent Broken"
         doc = "Whether tangent is broken (in/out tangents are independent)."
     )
@@ -436,7 +436,7 @@ class "ParticleSystemAPI" (
                 }
             }
         }
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Size Y Times"
         doc = "Keyframe times [0-1] for maxSize Y channel animation."
     )
@@ -450,7 +450,7 @@ class "ParticleSystemAPI" (
                 }
             }
         }
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Size Y Values"
         doc = "Keyframe values for maxSize Y channel."
     )
@@ -551,39 +551,39 @@ class "ParticleSystemAPI" (
         doc = "Maximum lifetime (in seconds) to give to a particle when spawned. After this time, particles are automatically removed."
     )
     float[] primvars:particle:maxVelocity:x:inTangentTimes = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Velocity X In Tangent Times"
         doc = "Time offsets for incoming tangent control points."
     )
     token[] primvars:particle:maxVelocity:x:inTangentTypes = [] (
         allowedTokens = ["linear", "auto", "smooth", "flat", "step", "custom"]
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Velocity X In Tangent Types"
         doc = "Incoming tangent types for each keyframe."
     )
     float[] primvars:particle:maxVelocity:x:inTangentValues = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Velocity X In Tangent Values"
         doc = "Value offsets for incoming tangent control points."
     )
     float[] primvars:particle:maxVelocity:x:outTangentTimes = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Velocity X Out Tangent Times"
         doc = "Time offsets for outgoing tangent control points."
     )
     token[] primvars:particle:maxVelocity:x:outTangentTypes = [] (
         allowedTokens = ["linear", "auto", "smooth", "flat", "step", "custom"]
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Velocity X Out Tangent Types"
         doc = "Outgoing tangent types for each keyframe."
     )
     float[] primvars:particle:maxVelocity:x:outTangentValues = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Velocity X Out Tangent Values"
         doc = "Value offsets for outgoing tangent control points."
     )
     bool[] primvars:particle:maxVelocity:x:tangentBrokens = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Velocity X Tangent Broken"
         doc = "Whether tangent is broken (in/out tangents are independent)."
     )
@@ -597,7 +597,7 @@ class "ParticleSystemAPI" (
                 }
             }
         }
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Velocity X Times"
         doc = "Keyframe times [0-1] for maxVelocity X channel animation."
     )
@@ -611,44 +611,44 @@ class "ParticleSystemAPI" (
                 }
             }
         }
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Velocity X Values"
         doc = "Keyframe values for maxVelocity X channel."
     )
     float[] primvars:particle:maxVelocity:y:inTangentTimes = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Velocity Y In Tangent Times"
         doc = "Time offsets for incoming tangent control points."
     )
     token[] primvars:particle:maxVelocity:y:inTangentTypes = [] (
         allowedTokens = ["linear", "auto", "smooth", "flat", "step", "custom"]
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Velocity Y In Tangent Types"
         doc = "Incoming tangent types for each keyframe."
     )
     float[] primvars:particle:maxVelocity:y:inTangentValues = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Velocity Y In Tangent Values"
         doc = "Value offsets for incoming tangent control points."
     )
     float[] primvars:particle:maxVelocity:y:outTangentTimes = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Velocity Y Out Tangent Times"
         doc = "Time offsets for outgoing tangent control points."
     )
     token[] primvars:particle:maxVelocity:y:outTangentTypes = [] (
         allowedTokens = ["linear", "auto", "smooth", "flat", "step", "custom"]
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Velocity Y Out Tangent Types"
         doc = "Outgoing tangent types for each keyframe."
     )
     float[] primvars:particle:maxVelocity:y:outTangentValues = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Velocity Y Out Tangent Values"
         doc = "Value offsets for outgoing tangent control points."
     )
     bool[] primvars:particle:maxVelocity:y:tangentBrokens = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Velocity Y Tangent Broken"
         doc = "Whether tangent is broken (in/out tangents are independent)."
     )
@@ -662,7 +662,7 @@ class "ParticleSystemAPI" (
                 }
             }
         }
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Velocity Y Times"
         doc = "Keyframe times [0-1] for maxVelocity Y channel animation."
     )
@@ -676,44 +676,44 @@ class "ParticleSystemAPI" (
                 }
             }
         }
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Velocity Y Values"
         doc = "Keyframe values for maxVelocity Y channel."
     )
     float[] primvars:particle:maxVelocity:z:inTangentTimes = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Velocity Z In Tangent Times"
         doc = "Time offsets for incoming tangent control points."
     )
     token[] primvars:particle:maxVelocity:z:inTangentTypes = [] (
         allowedTokens = ["linear", "auto", "smooth", "flat", "step", "custom"]
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Velocity Z In Tangent Types"
         doc = "Incoming tangent types for each keyframe."
     )
     float[] primvars:particle:maxVelocity:z:inTangentValues = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Velocity Z In Tangent Values"
         doc = "Value offsets for incoming tangent control points."
     )
     float[] primvars:particle:maxVelocity:z:outTangentTimes = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Velocity Z Out Tangent Times"
         doc = "Time offsets for outgoing tangent control points."
     )
     token[] primvars:particle:maxVelocity:z:outTangentTypes = [] (
         allowedTokens = ["linear", "auto", "smooth", "flat", "step", "custom"]
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Velocity Z Out Tangent Types"
         doc = "Outgoing tangent types for each keyframe."
     )
     float[] primvars:particle:maxVelocity:z:outTangentValues = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Velocity Z Out Tangent Values"
         doc = "Value offsets for outgoing tangent control points."
     )
     bool[] primvars:particle:maxVelocity:z:tangentBrokens = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Velocity Z Tangent Broken"
         doc = "Whether tangent is broken (in/out tangents are independent)."
     )
@@ -727,7 +727,7 @@ class "ParticleSystemAPI" (
                 }
             }
         }
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Velocity Z Times"
         doc = "Keyframe times [0-1] for maxVelocity Z channel animation."
     )
@@ -741,7 +741,7 @@ class "ParticleSystemAPI" (
                 }
             }
         }
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Max Velocity Z Values"
         doc = "Keyframe values for maxVelocity Z channel."
     )
@@ -755,7 +755,7 @@ class "ParticleSystemAPI" (
                 }
             }
         }
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Min Color Times"
         doc = "Keyframe times [0-1] over particle lifetime for minColor gradient. Empty means use legacy or constant mode."
     )
@@ -768,44 +768,44 @@ class "ParticleSystemAPI" (
                 }
             }
         }
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Min Color Values"
         doc = "Keyframe RGBA values for minColor gradient. Must match length of minColor:times."
     )
     float[] primvars:particle:minRotationSpeed:inTangentTimes = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Min Rotation Speed In Tangent Times"
         doc = "Time offsets for incoming tangent control points."
     )
     token[] primvars:particle:minRotationSpeed:inTangentTypes = [] (
         allowedTokens = ["linear", "auto", "smooth", "flat", "step", "custom"]
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Min Rotation Speed In Tangent Types"
         doc = "Incoming tangent types for each keyframe."
     )
     float[] primvars:particle:minRotationSpeed:inTangentValues = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Min Rotation Speed In Tangent Values"
         doc = "Value offsets for incoming tangent control points."
     )
     float[] primvars:particle:minRotationSpeed:outTangentTimes = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Min Rotation Speed Out Tangent Times"
         doc = "Time offsets for outgoing tangent control points."
     )
     token[] primvars:particle:minRotationSpeed:outTangentTypes = [] (
         allowedTokens = ["linear", "auto", "smooth", "flat", "step", "custom"]
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Min Rotation Speed Out Tangent Types"
         doc = "Outgoing tangent types for each keyframe."
     )
     float[] primvars:particle:minRotationSpeed:outTangentValues = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Min Rotation Speed Out Tangent Values"
         doc = "Value offsets for outgoing tangent control points."
     )
     bool[] primvars:particle:minRotationSpeed:tangentBrokens = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Min Rotation Speed Tangent Broken"
         doc = "Whether tangent is broken (in/out tangents are independent)."
     )
@@ -819,7 +819,7 @@ class "ParticleSystemAPI" (
                 }
             }
         }
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Min Rotation Speed Times"
         doc = "Keyframe times [0-1] for minRotationSpeed animation."
     )
@@ -833,44 +833,44 @@ class "ParticleSystemAPI" (
                 }
             }
         }
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Min Rotation Speed Values"
         doc = "Keyframe values for minRotationSpeed."
     )
     float[] primvars:particle:minSize:x:inTangentTimes = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Min Size X In Tangent Times"
         doc = "Time offsets for incoming tangent control points."
     )
     token[] primvars:particle:minSize:x:inTangentTypes = [] (
         allowedTokens = ["linear", "auto", "smooth", "flat", "step", "custom"]
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Min Size X In Tangent Types"
         doc = "Incoming tangent types for each keyframe."
     )
     float[] primvars:particle:minSize:x:inTangentValues = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Min Size X In Tangent Values"
         doc = "Value offsets for incoming tangent control points."
     )
     float[] primvars:particle:minSize:x:outTangentTimes = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Min Size X Out Tangent Times"
         doc = "Time offsets for outgoing tangent control points."
     )
     token[] primvars:particle:minSize:x:outTangentTypes = [] (
         allowedTokens = ["linear", "auto", "smooth", "flat", "step", "custom"]
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Min Size X Out Tangent Types"
         doc = "Outgoing tangent types for each keyframe."
     )
     float[] primvars:particle:minSize:x:outTangentValues = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Min Size X Out Tangent Values"
         doc = "Value offsets for outgoing tangent control points."
     )
     bool[] primvars:particle:minSize:x:tangentBrokens = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Min Size X Tangent Broken"
         doc = "Whether tangent is broken (in/out tangents are independent)."
     )
@@ -884,7 +884,7 @@ class "ParticleSystemAPI" (
                 }
             }
         }
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Min Size X Times"
         doc = "Keyframe times [0-1] for minSize X channel animation."
     )
@@ -898,44 +898,44 @@ class "ParticleSystemAPI" (
                 }
             }
         }
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Min Size X Values"
         doc = "Keyframe values for minSize X channel."
     )
     float[] primvars:particle:minSize:y:inTangentTimes = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Min Size Y In Tangent Times"
         doc = "Time offsets for incoming tangent control points."
     )
     token[] primvars:particle:minSize:y:inTangentTypes = [] (
         allowedTokens = ["linear", "auto", "smooth", "flat", "step", "custom"]
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Min Size Y In Tangent Types"
         doc = "Incoming tangent types for each keyframe."
     )
     float[] primvars:particle:minSize:y:inTangentValues = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Min Size Y In Tangent Values"
         doc = "Value offsets for incoming tangent control points."
     )
     float[] primvars:particle:minSize:y:outTangentTimes = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Min Size Y Out Tangent Times"
         doc = "Time offsets for outgoing tangent control points."
     )
     token[] primvars:particle:minSize:y:outTangentTypes = [] (
         allowedTokens = ["linear", "auto", "smooth", "flat", "step", "custom"]
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Min Size Y Out Tangent Types"
         doc = "Outgoing tangent types for each keyframe."
     )
     float[] primvars:particle:minSize:y:outTangentValues = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Min Size Y Out Tangent Values"
         doc = "Value offsets for outgoing tangent control points."
     )
     bool[] primvars:particle:minSize:y:tangentBrokens = [] (
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Min Size Y Tangent Broken"
         doc = "Whether tangent is broken (in/out tangents are independent)."
     )
@@ -949,7 +949,7 @@ class "ParticleSystemAPI" (
                 }
             }
         }
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Min Size Y Times"
         doc = "Keyframe times [0-1] for minSize Y channel animation."
     )
@@ -963,7 +963,7 @@ class "ParticleSystemAPI" (
                 }
             }
         }
-        displayGroup = "Lifetime Animation"
+        displayGroup = "Spawn"
         displayName = "Min Size Y Values"
         doc = "Keyframe values for minSize Y channel."
     )

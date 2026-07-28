@@ -30,6 +30,31 @@ namespace components
 		Free15 = 1 << 15,
 	};
 
+	enum remix_custom_rs
+	{
+		RS_42_TEXTURE_CATEGORY = 42,
+		RS_149_REMIX_MODIFIER = 149,
+		RS_150_TEXTURE_HASH = 150,
+		RS_169_EMISSIVE_SCALE = 169,
+		RS_177_FREE = 177,
+		RS_210_FREE = 210,
+		RS_211_FREE = 211,
+		RS_212_FREE = 212,
+		RS_213_FREE = 213,
+		RS_214_FREE = 214,
+		RS_215_FREE = 215,
+		RS_216_FREE = 216,
+		RS_217_FREE = 217,
+		RS_218_FREE = 218,
+		RS_219_FREE = 219,
+		RS_220_HASH_MODIFIER_SEED = 220,
+	};
+
+	enum remix_hash_seed
+	{
+		ZERO_EMISSION_SEED = 1337,
+	};
+
 	constexpr RemixModifier operator|(RemixModifier lhs, RemixModifier rhs) {
 		return static_cast<RemixModifier>(static_cast<std::uint32_t>(lhs) | static_cast<std::uint32_t>(rhs));
 	}
@@ -48,29 +73,14 @@ namespace components
 		return lhs;
 	}
 
-	enum remix_custom_rs
-	{
-		RS_42_TEXTURE_CATEGORY = 42,
-		RS_149_REMIX_MODIFIER = 149,
-		RS_150_TEXTURE_HASH = 150,
-		RS_169_EMISSIVE_SCALE = 169,
-		RS_177_FREE = 177,
-		RS_210_FREE = 210,
-		RS_211_FREE = 211,
-		RS_212_FREE = 212,
-		RS_213_FREE = 213,
-		RS_214_FREE = 214,
-		RS_215_FREE = 215,
-		RS_216_FREE = 216,
-		RS_217_FREE = 217,
-		RS_218_FREE = 218,
-		RS_219_FREE = 219,
-		RS_220_FREE = 220,
-	};
+	constexpr RemixModifier operator~(RemixModifier e) {
+		return static_cast<RemixModifier>(~static_cast<std::uint32_t>(e));
+	}
 
 	// can't use remixapi_InstanceCategoryFlags as they don't match up with InstanceCategories
 	enum class InstanceCategories : uint32_t
 	{
+		None = 0u,
 		WorldUI = 1 << 0,
 		WorldMatte = 1 << 1,
 		Sky = 1 << 2,
@@ -95,9 +105,9 @@ namespace components
 		IgnoreBakedLighting = 1 << 21,
 		IgnoreTransparencyLayer = 1 << 22,
 		ParticleEmitter = 1 << 23,
-		DisableBackfaceCulling = 1 << 24,
-		Count = 24,
-		None = 0u
+		SmoothNormals = 1 << 24,
+		HairCards = 1 << 25,
+		Count = 25u,
 	};
 
 	constexpr InstanceCategories operator|(InstanceCategories lhs, InstanceCategories rhs) {
@@ -116,6 +126,10 @@ namespace components
 	constexpr InstanceCategories& operator&=(InstanceCategories& lhs, InstanceCategories rhs) {
 		lhs = static_cast<InstanceCategories>(static_cast<std::uint32_t>(lhs) & static_cast<std::uint32_t>(rhs));
 		return lhs;
+	}
+
+	constexpr InstanceCategories operator~(InstanceCategories e) {
+		return static_cast<InstanceCategories>(~static_cast<std::uint32_t>(e));
 	}
 
 	namespace tbl_hk::model_renderer
@@ -652,9 +666,10 @@ namespace components
 		}
 
 		static void set_remix_modifier(IDirect3DDevice9* dev, RemixModifier mod);
-		static void set_remix_emissive_intensity(IDirect3DDevice9* dev, float intensity, bool no_overrides = false);
-		static void set_remix_texture_categories(IDirect3DDevice9* dev, const InstanceCategories& cat);
+		static void set_remix_emissive_intensity(IDirect3DDevice9* dev, float intensity);
+		static void set_remix_texture_categories(IDirect3DDevice9* dev, const InstanceCategories& cat, bool remove_category = false);
 		static void set_remix_texture_hash(IDirect3DDevice9* dev, const std::uint32_t& hash);
+		static void set_remix_texture_hash_modifier(IDirect3DDevice9* dev, const std::uint32_t& seed);
 		static void set_remix_free_float_rs169(IDirect3DDevice9* dev, float value);
 
 		static void draw_nocull_markers();

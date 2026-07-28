@@ -60,6 +60,8 @@ Temporary Items
 *.zip
 
 # Additional stuff
+bin
+obj
 build
 user*.bat
 *.psd
@@ -71,8 +73,9 @@ user*.bat
 !.vscode/tracked
 !.vscode/readme.txt
 
-bin/*
-!assets/**
+!assets/bin/.trex/d3d9_runtime.zip
+!assets/bin/.trex/d3d9_runtime_pdb.zip
+!assets/bin
 
 # IDA
 # =========================

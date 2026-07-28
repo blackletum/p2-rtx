@@ -210,16 +210,11 @@ namespace components
 		dev->SetRenderState((D3DRENDERSTATETYPE)RS_149_REMIX_MODIFIER, static_cast<DWORD>(primctx.modifiers.remix_modifier));
 	}
 
-	// Uses unused Renderstate 149 & 169 to tweak the emissive intensity of remix materials (legacy/opaque)
-	// ~ currently req. runtime changes --> remixTempFloat01FromD3D
-	/// @param no_overrides	will not override any previously set intensity if true
-	void model_render::set_remix_emissive_intensity(IDirect3DDevice9* dev, float intensity, bool no_overrides)
+	// uses unused Renderstate 149 (mod) & 169 to tweak the emissive intensity of remix materials (legacy/opaque)
+	// ~ currently req. runtime changes
+	// ~ req. runtime changes --> remixTempFloat01FromD3D
+	void model_render::set_remix_emissive_intensity(IDirect3DDevice9* dev, float intensity)
 	{
-		const bool result = primctx.save_rs(dev, RS_169_EMISSIVE_SCALE);
-		if (!result && no_overrides) {
-			return;
-		}
-
 		primctx.info.shaderconst_emissive_intensity = intensity;
 		set_remix_modifier(dev, RemixModifier::EmissiveScalar);
 		set_remix_free_float_rs169(dev, intensity);
@@ -227,10 +222,17 @@ namespace components
 
 	// Uses unused Renderstate 42 to set remix texture categories
 	// ~ req. runtime changes
-	void model_render::set_remix_texture_categories(IDirect3DDevice9* dev, const InstanceCategories& cat)
+	void model_render::set_remix_texture_categories(IDirect3DDevice9* dev, const InstanceCategories& cat, bool remove_category)
 	{
 		primctx.save_rs(dev, RS_42_TEXTURE_CATEGORY);
-		primctx.modifiers.remix_instance_categories |= cat;
+
+		if (remove_category) {
+			primctx.modifiers.remix_instance_categories &= ~cat;
+		}
+		else {
+			primctx.modifiers.remix_instance_categories |= cat;
+		}
+
 		dev->SetRenderState((D3DRENDERSTATETYPE)RS_42_TEXTURE_CATEGORY, static_cast<DWORD>(primctx.modifiers.remix_instance_categories));
 	}
 
@@ -240,6 +242,14 @@ namespace components
 	{
 		primctx.save_rs(dev, RS_150_TEXTURE_HASH);
 		dev->SetRenderState((D3DRENDERSTATETYPE)RS_150_TEXTURE_HASH, hash);
+	}
+
+	// Uses unused Renderstate 220 re-hash the original hash with a given seed
+	// ~ req. runtime changes
+	void model_render::set_remix_texture_hash_modifier(IDirect3DDevice9* dev, const std::uint32_t& seed)
+	{
+		primctx.save_rs(dev, RS_220_HASH_MODIFIER_SEED);
+		dev->SetRenderState((D3DRENDERSTATETYPE)RS_220_HASH_MODIFIER_SEED, seed);
 	}
 
 	// uses unused Renderstate 169 to pass per drawcall data
