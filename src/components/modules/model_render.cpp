@@ -1590,6 +1590,7 @@ namespace components
 		auto& ctx = model_render::primctx;
 		const auto shaderapi = game::get_shaderapi();
 		const auto gs = game_settings::get();
+		const auto im = imgui::get();
 
 		if (ctx.get_info_for_pass(shaderapi)) 
 		{
@@ -1981,7 +1982,16 @@ namespace components
 				// render bik using shaders
 				else if (ctx.info.material_name.starts_with("videobik") || ctx.info.material_name.starts_with("media/"))
 				{
-					model_render::set_remix_texture_categories(dev, InstanceCategories::DecalStatic);
+					if (!im->m_debug_bik_use_custom_first_tex_cat) {
+						model_render::set_remix_texture_categories(dev, InstanceCategories::IgnoreAlphaChannel /*DecalStatic*/);
+					} else {
+						model_render::set_remix_texture_categories(dev, (InstanceCategories)(1 << im->m_debug_bik_custom_first_tex_cat_index));
+					}
+
+					if (im->m_debug_bik_use_custom_second_tex_cat) {
+						model_render::set_remix_texture_categories(dev, (InstanceCategories)(1 << im->m_debug_bik_custom_second_tex_cat_index));
+					}
+
 					model_render::set_remix_texture_hash(dev, utils::string_hash32(ctx.info.material_name));
 					model_render::set_remix_modifier(dev, RemixModifier::EmissiveForceOnWithAlbedo | RemixModifier::Bik);
 					model_render::set_remix_emissive_intensity(dev, gs->bik_emissive_intensity._float());

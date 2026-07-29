@@ -49,6 +49,11 @@ namespace components
 
 		int m_debug_paint_sampler_index = 9;
 
+		bool m_debug_bik_use_custom_first_tex_cat = false;
+		int  m_debug_bik_custom_first_tex_cat_index = 0;
+		bool m_debug_bik_use_custom_second_tex_cat = false;
+		int  m_debug_bik_custom_second_tex_cat_index = 0;
+
 		Vector m_debug_vector = { 0.0f, 0.0f, 0.0f };
 		Vector m_debug_vector2 = { 0.0f, 0.0f, 0.0f };
 		Vector m_debug_vector3 = { 0.0f, 0.0f, 0.0f };

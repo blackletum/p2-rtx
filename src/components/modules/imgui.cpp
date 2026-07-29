@@ -3781,6 +3781,16 @@ namespace components
 				im->m_debug_paint_sampler_index = std::clamp(im->m_debug_paint_sampler_index, 0, 15);
 			}
 
+			ImGui::Checkbox("Custom First BIK Texture Category", &im->m_debug_bik_use_custom_first_tex_cat);
+			ImGui::BeginDisabled(!im->m_debug_bik_use_custom_first_tex_cat);
+			ImGui::SliderInt("First Tex Index", &im->m_debug_bik_custom_first_tex_cat_index, 0, (int)InstanceCategories::Count);
+			ImGui::EndDisabled();
+
+			ImGui::Checkbox("Custom Second BIK Texture Category", &im->m_debug_bik_use_custom_second_tex_cat);
+			ImGui::BeginDisabled(!im->m_debug_bik_use_custom_second_tex_cat);
+			ImGui::SliderInt("Second Tex Index", &im->m_debug_bik_custom_second_tex_cat_index, 0, (int)InstanceCategories::Count);
+			ImGui::EndDisabled();
+
 			ImGui::Unindent(6);
 		}
 
