@@ -541,8 +541,8 @@ namespace components
 			{
 				"emancipationgrill_emissive_scale",
 				"Emissive scale when 'emancipationgrill_force_emissive' is true",
-				"2.4.0",
-				2.0f
+				"2.4.1",
+				2.5f
 			};
 
 			variable emancipationgrill_color_scalar_center =
