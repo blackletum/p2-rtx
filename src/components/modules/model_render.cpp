@@ -2436,7 +2436,7 @@ namespace components
 					bool is_world_ui_text = ctx.info.buffer_state.m_Transform[0].m[3][0] != 0.0f && ctx.info.material_name == "vgui__fontpage";
 
 					if (is_world_ui_text) {
-						model_render::set_remix_texture_categories(dev, InstanceCategories::WorldUI);
+						model_render::set_remix_texture_categories(dev, InstanceCategories::WorldUI | InstanceCategories::DecalStatic);
 					}
 
 					// vgui/screens/vgui_coop_progress_board
