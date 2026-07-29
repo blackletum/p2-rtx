@@ -115,7 +115,7 @@ namespace p2
 namespace tier0
 {
 	void(__cdecl* OriginalMsg)(const char*, ...) = nullptr;
-	int Msg_hk(const char* fmt, ...)
+	void Msg_hk(const char* fmt, ...)
 	{
 		char buffer[4096];
 
@@ -127,14 +127,12 @@ namespace tier0
 		common::log("Game:Msg >", buffer, common::LOG_TYPE::LOG_TYPE_DEFAULT, true, false, true);
 
 		globals::detoured_msg_fn_origin = true;
-		OriginalMsg(buffer);
+		OriginalMsg("%s", buffer);
 		globals::detoured_msg_fn_origin = false;
-
-		return 0;
 	}
 
 	void(__cdecl* OriginalWarning)(const char*, ...) = nullptr;
-	int Warning_hk(const char* fmt, ...)
+	void Warning_hk(const char* fmt, ...)
 	{
 		char buffer[4096];
 
@@ -146,11 +144,39 @@ namespace tier0
 		common::log("Game:Warning >", buffer, common::LOG_TYPE::LOG_TYPE_WARN, true, false, true);
 
 		globals::detoured_warning_fn_origin = true;
-		OriginalWarning(buffer);
+		OriginalWarning("%s", buffer);
 		globals::detoured_warning_fn_origin = false;
-
-		return 0;
 	}
+
+#ifdef DEBUG
+	void(__cdecl* OriginalOM_TimestampedLog)(const char*, ...) = nullptr;
+	void COM_TimestampedLog_hk(const char* fmt, ...)
+	{
+		char buffer[4096];
+
+		va_list args;
+		va_start(args, fmt);
+		vsnprintf(buffer, sizeof(buffer), fmt, args);
+		va_end(args);
+
+		// Ensure the string ends with '\n'
+		size_t len = strlen(buffer);
+		if (len == 0 || buffer[len - 1] != '\n')
+		{
+			if (len < sizeof(buffer) - 1)
+			{
+				buffer[len] = '\n';
+				buffer[len + 1] = '\0';
+			}
+		}
+
+		common::log("Game:Log >", buffer, common::LOG_TYPE::LOG_TYPE_DEFAULT, true, false, true);
+
+		globals::detoured_com_timestamped_log_origin = true;
+		OriginalOM_TimestampedLog("%s", buffer);
+		globals::detoured_com_timestamped_log_origin = false;
+	}
+#endif
 }
 
 BOOL APIENTRY DllMain(HMODULE hmodule, const DWORD ul_reason_for_call, LPVOID)
@@ -186,6 +212,10 @@ BOOL APIENTRY DllMain(HMODULE hmodule, const DWORD ul_reason_for_call, LPVOID)
 
 		MH_CreateHookApi(L"tier0.dll", "Warning", tier0::Warning_hk, (LPVOID*)&tier0::OriginalWarning);
 		MH_CreateHookApi(L"tier0.dll", "Msg", tier0::Msg_hk, (LPVOID*)&tier0::OriginalMsg);
+
+#ifdef DEBUG // Not something the general user needs to see but very good for debugging
+		MH_CreateHookApi(L"tier0.dll", "COM_TimestampedLog", tier0::COM_TimestampedLog_hk, (LPVOID*)&tier0::OriginalOM_TimestampedLog);
+#endif
 		MH_EnableHook(MH_ALL_HOOKS);
 
 		// init early modules here <>
