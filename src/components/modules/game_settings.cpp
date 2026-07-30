@@ -146,6 +146,8 @@ namespace components
 				ASSIGN(emancipationgrill_emissive_scale);
 				ASSIGN(emancipationgrill_color_scalar_center);
 				ASSIGN(emancipationgrill_color_scalar_side_emitters);
+				ASSIGN(emancipationgrill_mark_as_particle);
+				ASSIGN(emancipationgrill_mark_as_beam);
 				ASSIGN(use_brushfastpath);
 				ASSIGN(use_hardcoded_wheatly_flashlight_bts3);
 				ASSIGN(debug_info_distance);

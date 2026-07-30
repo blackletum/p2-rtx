@@ -3712,6 +3712,8 @@ namespace components
 		gamesettings_float_widget("Emissive Scale", gs->emancipationgrill_emissive_scale, 0.0f, 200.0f);
 		gamesettings_vec_widget("Color Scalar Center", gs->emancipationgrill_color_scalar_center, 4, 0.0f, 2.0f);
 		gamesettings_vec_widget("Color Scalar SideEmitters", gs->emancipationgrill_color_scalar_side_emitters, 4, 0.0f, 2.0f);
+		gamesettings_bool_widget("Tag as Particle", gs->emancipationgrill_mark_as_particle);
+		gamesettings_bool_widget("Tag as Beam", gs->emancipationgrill_mark_as_beam);
 		ImGui::PopID();
 
 		ImGui::Spacing(0, 6);

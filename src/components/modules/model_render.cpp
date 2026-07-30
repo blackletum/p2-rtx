@@ -1346,6 +1346,14 @@ namespace components
 			model_render::set_remix_emissive_intensity(dev, gs->emancipationgrill_emissive_scale._float());
 		}
 
+		if (gs->emancipationgrill_mark_as_particle._bool()) {
+			model_render::set_remix_texture_categories(dev, InstanceCategories::Particle);
+		}
+
+		if (gs->emancipationgrill_mark_as_beam._bool()) {
+			model_render::set_remix_texture_categories(dev, InstanceCategories::Beam);
+		}
+
 		{
 			ctx.save_texture(dev, 0);
 			dev->SetTexture(0, tex_addons::emancipation_grill);

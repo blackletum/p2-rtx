@@ -541,8 +541,8 @@ namespace components
 			{
 				"emancipationgrill_emissive_scale",
 				"Emissive scale when 'emancipationgrill_force_emissive' is true",
-				"2.4.1",
-				2.5f
+				"2.4.2",
+				1.0f
 			};
 
 			variable emancipationgrill_color_scalar_center =
@@ -559,6 +559,22 @@ namespace components
 				"Color scale RGBA of emancipation grills side emitters",
 				"2.4.0",
 				1.0f, 0.85f, 0.5f, 0.5f
+			};
+
+			variable emancipationgrill_mark_as_particle =
+			{
+				"emancipationgrill_mark_as_particle",
+				"Auto tag as particle to soften edges",
+				"2.4.2",
+				true
+			};
+
+			variable emancipationgrill_mark_as_beam =
+			{
+				"emancipationgrill_mark_as_beam",
+				"Auto tag as beam to fix animation issues when looking through translucent surfaces",
+				"2.4.2",
+				true
 			};
 
 			variable use_brushfastpath =

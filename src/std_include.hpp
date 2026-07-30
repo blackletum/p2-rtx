@@ -8,7 +8,7 @@
 
 constexpr auto COMP_MOD_VERSION_MAJOR = 2;
 constexpr auto COMP_MOD_VERSION_MINOR = 4;
-constexpr auto COMP_MOD_VERSION_PATCH = 1;
+constexpr auto COMP_MOD_VERSION_PATCH = 2;
 
 // adjust for pre-release builds
 constexpr auto COMP_MOD_PRE_RELEASE_NUM = 0;
