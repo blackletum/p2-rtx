@@ -623,7 +623,7 @@ namespace components
 				"bik_emissive_intensity",
 				"Emissive Intensity of BIK videos",
 				"2.4.0",
-				1.0f
+				2.5f
 			};
 
 			variable enable_dual_layered_water =
