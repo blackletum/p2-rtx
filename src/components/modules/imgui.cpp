@@ -3815,10 +3815,12 @@ namespace components
 			ImGui::DragFloat("Debug Float 03", &im->m_debug_float03, 0.05f);
 			ImGui::Spacing(0, 4);
 
+			ImGui::Checkbox("Debug Bool 00", &im->m_debug_bool00);
 			ImGui::Checkbox("Debug Bool 01", &im->m_debug_bool01);
-			ImGui::Checkbox("Debug Bool 02", &im->m_debug_bool01);
-			ImGui::Checkbox("Debug Bool 03", &im->m_debug_bool01);
-			ImGui::Checkbox("Debug Bool 04", &im->m_debug_bool01);
+			ImGui::Checkbox("Debug Bool 02", &im->m_debug_bool02);
+			ImGui::Checkbox("Debug Bool 03", &im->m_debug_bool03);
+			ImGui::Checkbox("Debug Bool 04", &im->m_debug_bool04);
+			ImGui::Checkbox("Debug Bool 04", &im->m_debug_bool05);
 			ImGui::Spacing(0, 4);
 
 			const auto coloredit_flags = ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_PickerHueBar | ImGuiColorEditFlags_Float;
