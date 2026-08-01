@@ -67,25 +67,19 @@ If you want to support my work:
 - Take a look at the [Wiki](https://github.com/xoxor4d/p2-rtx/wiki/Compatibility-Mod-Feature-Guide) for in-depth guides on features that come with the compatibility mod 🍓
   
 - Current releases ship with:
-  - [custom build of the remix-dxvk runtime](https://github.com/xoxor4d/dxvk-remix/tree/game/p2) which includes necessary changes  
-for Portal 2 (`bin/.trex/d3d9.dll`)
-  - [custom build of bridge-remix](https://github.com/xoxor4d/bridge-remix/tree/pr/remixapi-add-remove-texhash) which includes necessary changes  
-for Portal 2 (`bin/.trex/NvRemixBridge.exe` & `bin/d3d9.dll`)
-
+  - [custom build of the remix-dxvk runtime](https://github.com/xoxor4d/dxvk-remix/tree/game/p2_rebase3) which includes necessary changes  
+for Portal 2
+ 
 - Some engine tweaks that are required to make the game compatible result in CPU bottlenecks on some maps (software skinning instead of HW skinning). This may or may not improve in future updates.
 
 <br>
 
 ## ⚠️ Troubleshooting (click to expand):
 
-<details><summary>Do I need to start the game from the batch file every time?</summary>
+<details><summary>Do I need to start the game via the batch file every time?</summary>
 <br>
 
-1. No, copy all of the commandline arguments of the batch file (everything after `START portal2.exe`)
-   
-2. Add them as launch args by right clicking Portal 2 in Steam -> Properties -> Launch Options
-
-3. Sart the game from Steam
+	Yes. Asiloaders / dxwrapper will not load if the game is run from steam.
 
 <br></details>
 
@@ -93,19 +87,8 @@ for Portal 2 (`bin/.trex/NvRemixBridge.exe` & `bin/d3d9.dll`)
 <details><summary>How do I disable remix?</summary>
 <br>
 
-- Run `toggle-p2-rtx.bat` and follow the instructions to disable or enable the mod
-- There are a few game cvars you might need to reset after you've disabled the compatibility mod.  
-```
-r_portal_stencil_depth 2
-r_dopixelvisibility 1
-mat_fullbright 0
-mat_softwareskin 0
-mat_fastnobump 0
-mat_normalmaps 1
-cl_tlucfastpath 1
-cl_modelfastpath 1
-cl_brushfastpath 1  
-```
+	Run `p2-rtx-disable.bat` and follow the instructions to disable or the mod.  
+	The game will start afterwards to reset some required cvars.
 
 <br></details>
 
@@ -113,27 +96,21 @@ cl_brushfastpath 1
 <details><summary>Crashing, startup issues, not working ..</summary>
 <br>
 
-- Make sure that you have no clipping software such as "medal" running in the background
-
-- Follow [this #209](https://github.com/xoxor4d/p2-rtx/issues/209) and place `dxwrapper.asi` into the `bin` folder (next to `winmm.dll`) 
-
-- If your game is installed within `Program Files`:
-  - right click `portal2.exe` and click settings - compatibility tab and enable run as admin
-  - or install the game somewhere outside `Program Files`
-
-- Other startup issues?
-  - Add `-debug` as a launch arg to `run-p2-rtx.bat` (`START portal2.exe -debug -insecure ...`)
-  - An external console window should show up when launching the game, copy and paste it's contents when you create an issue on GitHub
-
+- Make sure that you have no clipping software such as "medal" running in the background.  
+- If your game is installed within `Program Files`:  
+	  - right click `portal2.exe` and click settings - compatibility tab and enable run as admin  
+	  - or install the game somewhere outside `Program Files`  
+	
 - Download and install [DirectX End-User Runtimes (June 2010)](https://www.microsoft.com/en-ie/download/details.aspx?id=8109)
 
 <br></details>
 
 
-<details><summary>Portals not showing up - Darkness</summary>
+<details><summary>Portals not showing up - Game is too dark</summary>
 <br>
 
-- Make sure that you installed the [base-remix-mod](https://github.com/xoxor4d/p2-rtx-base-mod) as stated in the release notes
+Make sure that you installed the [base-remix-mod](https://github.com/xoxor4d/p2-rtx-base-mod) via the installer or manually.  
+Some maps are not yet touched up, so if you are not rocking an additional community mod (for remix), some maps will be dark and water broken.
 
 <br></details>
 
@@ -141,21 +118,13 @@ cl_brushfastpath 1
 <details><summary>No sound</summary>
 <br>
 
-- Either copy `_master.cache` from `root/portal2/maps/soundcache` to `root/portal2_dlc3/maps/soundcache` 
-- Or paste this into the in-game console and execute: `snd_rebuildaudiocache;snd_updateaudiocache;exit`
+- Either copy `_master.cache` from `root/portal2/maps/soundcache` to `root/portal2_dlc3/maps/soundcache`  
+  or paste this into the in-game console and execute: `snd_rebuildaudiocache;snd_updateaudiocache;exit`
 
 <br></details>
 
-<details><summary>Game is too dark, sunlight is leaking on certain maps, textures look flat</summary>
-<br>
-
-- This is not an issue with the compatibility mod itself. It's up to the people modding the game using the remix toolset to place proper lights and overhaul textures and meshes.
-
-<br></details>
-
-
-- Other Issue?
-> - Look at [Closed Issues](https://github.com/xoxor4d/p2-rtx/issues?q=is%3Aissue+is%3Aclosed) or [Discussions](https://github.com/xoxor4d/p2-rtx/discussions) to see if people had similar issues
+Other Issue?
+> Look at [Closed Issues](https://github.com/xoxor4d/p2-rtx/issues?q=is%3Aissue+is%3Aclosed) or [Discussions](https://github.com/xoxor4d/p2-rtx/discussions) to see if people had similar issues
 
 <br>
 
@@ -164,7 +133,6 @@ cl_brushfastpath 1
 - [People of the showcase discord](https://discord.gg/j6sh7JD3v9) - especially the nvidia engineers ✌️
 - All early access people for testing/bug reporting and for covering my electricity bill ⚡
 - [Wolƒe Strider Shoσter](https://github.com/wolfestridershooter) - for all the high quality bug reports! 
-- Yosuke Nathan - Portal 2 Remix Logo
 - [dear-imgui](https://github.com/ocornut/imgui)
 - [imgui-blur-effect](https://github.com/3r4y/imgui-blur-effect)
 - [minhook](https://github.com/TsudaKageyu/minhook)
