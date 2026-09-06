@@ -27,9 +27,10 @@ If you want to support my work:
 1. Download <LINK_TO_MOD_ZIP>
 
 2. Open the zip and extract all files contained inside the `Portal2-Remix-CompatibilityMod` folder into your Portal2 directory (next to the `portal2.exe`). Overwrite all when prompted.
+3. Go into your `.trex` folder and find `d3d9_runtime.zip`. Extract the content (`d3d9.dll`) into your `.trex` folder.
 
-3. Download the [`base remix-mod`](https://github.com/xoxor4d/p2-rtx-base-mod/archive/refs/heads/master.zip) - repo: (https://github.com/xoxor4d/p2-rtx-base-mod)
-4. Extract and place the `mods` folder __into__ the `rtx-remix` folder found in the Portal 2 __root__ folder  
+4. Download the [`base remix-mod`](https://github.com/xoxor4d/p2-rtx-base-mod/archive/refs/heads/master.zip) - repo: (https://github.com/xoxor4d/p2-rtx-base-mod)
+5. Extract and place the `mods` folder __into__ the `rtx-remix` folder found in the Portal 2 __root__ folder  
 (create the `rtx-remix` folder if it does not exist) (see [this](#folder-structure))
 
 > [!Note]
@@ -90,6 +91,6 @@ If you want to support my work:
 ----
 
 ## ✳️ Info:
-- Current releases ship with a custom build of the [remix-dxvk runtime](https://github.com/xoxor4d/dxvk-remix/tree/game/p2_rebase3) including necessary changes for Portal 2
+- Current releases ship with a custom build of the [remix-dxvk runtime](https://github.com/xoxor4d/dxvk-remix/tree/game/p2) including necessary changes for Portal 2
 - Some engine tweaks required to make the game compatible with RTX Remix result in CPU bottlenecks on some maps (software skinning instead of HW skinning, drawcall amount). This may or may not improve in future updates.
 - There are clever ways to optimize many aspects of this game but that takes time and lots of effort.

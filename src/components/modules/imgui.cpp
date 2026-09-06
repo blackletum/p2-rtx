@@ -3916,6 +3916,7 @@ namespace components
 		CENTER_URL("dxwrapper", "https://github.com/elishacloud/dxwrapper");
 		CENTER_URL("Miniz", "https://github.com/richgel999/miniz");
 		CENTER_URL("WolfeStrider", "https://github.com/WolfeStrider");
+		CENTER_URL("Sparkles (DLSS5 Integration", "https://github.com/Kim2091");
 
 		ImGui::Spacing(0.0f, 24.0f);
 		ImGui::CenterText("And of course, all my fellow Ko-Fi and Patreon supporters");

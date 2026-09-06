@@ -31,7 +31,7 @@ Please keep that in mind.
 <div align="center" markdown="1">
 
 ![img](.github/img/01.png)
-![img](.github/img/04.png)
+![img](.github/img/02.png)
 </div>
 
 <br>
@@ -67,7 +67,7 @@ If you want to support my work:
 - Take a look at the [Wiki](https://github.com/xoxor4d/p2-rtx/wiki/Compatibility-Mod-Feature-Guide) for in-depth guides on features that come with the compatibility mod 🍓
   
 - Current releases ship with:
-  - [custom build of the remix-dxvk runtime](https://github.com/xoxor4d/dxvk-remix/tree/game/p2_rebase3) which includes necessary changes  
+  - [custom build of the remix-dxvk runtime](https://github.com/xoxor4d/dxvk-remix/tree/game/p2) which includes necessary changes  
 for Portal 2
  
 - Some engine tweaks that are required to make the game compatible result in CPU bottlenecks on some maps (software skinning instead of HW skinning). This may or may not improve in future updates.
@@ -138,12 +138,13 @@ Other Issue?
 - [minhook](https://github.com/TsudaKageyu/minhook)
 - [toml11](https://github.com/ToruNiina/toml11)
 - [dxwrapper](https://github.com/elishacloud/dxwrapper)
+- [Sparkles (DLSS5 Integration)](https://github.com/Kim2091)
 
 <br>
 
 <div align="center" markdown="1">
 
-![img](.github/img/02.png)
+![img](.github/img/04.png)
 ![img](.github/img/03.png)
 ![img](.github/img/05.png)
 ![img](.github/img/06.png)

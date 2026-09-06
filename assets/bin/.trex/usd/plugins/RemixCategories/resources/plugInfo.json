@@ -11,6 +11,7 @@
             "bases": [
               "UsdAPISchemaBase"
             ],
+            "schemaIdentifier": "RemixInstanceCategoryAPI",
             "schemaKind": "singleApplyAPI"
           }
         }
@@ -18,7 +19,7 @@
       "LibraryPath": "RemixCategories.dll",
       "Name": "RemixCategories",
       "ResourcePath": ".",
-      "Root": "./../",
+      "Root": "..",
       "Type": "library"
     }
   ]

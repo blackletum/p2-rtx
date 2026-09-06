@@ -80,7 +80,6 @@ namespace components
 	// can't use remixapi_InstanceCategoryFlags as they don't match up with InstanceCategories
 	enum class InstanceCategories : uint32_t
 	{
-		None = 0u,
 		WorldUI = 1 << 0,
 		WorldMatte = 1 << 1,
 		Sky = 1 << 2,
@@ -103,11 +102,11 @@ namespace components
 		ThirdPersonPlayerModel = 1 << 19,
 		ThirdPersonPlayerBody = 1 << 20,
 		IgnoreBakedLighting = 1 << 21,
-		IgnoreTransparencyLayer = 1 << 22,
-		ParticleEmitter = 1 << 23,
-		SmoothNormals = 1 << 24,
-		HairCards = 1 << 25,
-		Count = 25u,
+		ParticleEmitter = 1 << 22,
+		SmoothNormals = 1 << 23,
+		HairCards = 1 << 24,
+		Count = 24,
+		None = 0u
 	};
 
 	constexpr InstanceCategories operator|(InstanceCategories lhs, InstanceCategories rhs) {

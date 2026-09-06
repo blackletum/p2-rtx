@@ -7,8 +7,8 @@
 #define COMPMOD_ASSET_DIR "\\portal2-rtx\\"
 
 constexpr auto COMP_MOD_VERSION_MAJOR = 2;
-constexpr auto COMP_MOD_VERSION_MINOR = 4;
-constexpr auto COMP_MOD_VERSION_PATCH = 3;
+constexpr auto COMP_MOD_VERSION_MINOR = 5;
+constexpr auto COMP_MOD_VERSION_PATCH = 0;
 
 // adjust for pre-release builds
 constexpr auto COMP_MOD_PRE_RELEASE_NUM = 0;
