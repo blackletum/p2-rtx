@@ -40,11 +40,22 @@ Please keep that in mind.
 
 ### __[ Remix Compatibility Features ]__   
 🔹Most things are rendered using the fixed-function pipeline🔹  
+
 🔹Remix friendly culling and the ability to manually override culling🔹  
+
 🔹Ability to spawn and animate lights on events using a keyframe system🔹  
+
 🔹Per map loading of remix config files to set remix variables🔹  
+
 🔹Ability to animate remix variables on events🔹  
+
 🔹Spawning of unique anchor meshes🔹  
+
+🔹**DLSS 4.5 (Ray Reconstruction 2) support**🔹  
+
+🔹**DLSS 5.0 (Neural Rendering) support**🔹  
+(Integration made by [Sparkles](https://github.com/Kim2091/dxvk-remix/tree/gta4-atmos-dlss5)  
+
 🔹... and much, much more ...🔹  
 
 <br>
@@ -67,8 +78,7 @@ If you want to support my work:
 - Take a look at the [Wiki](https://github.com/xoxor4d/p2-rtx/wiki/Compatibility-Mod-Feature-Guide) for in-depth guides on features that come with the compatibility mod 🍓
   
 - Current releases ship with:
-  - [custom build of the remix-dxvk runtime](https://github.com/xoxor4d/dxvk-remix/tree/game/p2) which includes necessary changes  
-for Portal 2
+  - [custom build of the remix-dxvk runtime](https://github.com/xoxor4d/dxvk-remix/tree/game/p2) which includes necessary changes for Portal 2
  
 - Some engine tweaks that are required to make the game compatible result in CPU bottlenecks on some maps (software skinning instead of HW skinning). This may or may not improve in future updates.
 

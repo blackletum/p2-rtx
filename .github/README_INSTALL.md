@@ -20,6 +20,11 @@ If you want to support my work:
 3. Place both files in the same folder (_no need to copy them to your game folder_) and run `Portal2-Remix-CompMod-Installer.exe` 
 4. Use the File Dialog to select your `portal2.exe` which is located in your Portal2 install folder
 
+<br>
+
+> [!IMPORTANT]
+> If you want to use DLSS 5 (NR), you'll need to source and place `nvngx_dlssnr.dll` into the `.trex` folder on your own.  
+> You can then use the NR settings found within the Post-Processing tab (Alt+X - Advanced Menu) 
 
 <br>
 
@@ -44,8 +49,13 @@ If you want to support my work:
 - Launching via Steam will **NOT** work.  
 - An external console window should spawn and let you know if there are any issues.
 
-  > Press Alt + X to open the Remix menu  
-  > Press F5 to open the Compatibility Mod menu
+> - Press `Alt + X` to open the Remix menu  
+> - Press `F5` to open the Compatibility Mod menu
+
+### Using DLSS 5
+- Open the Remix menu via `Alt + X` and open the Advanced Settings Menu
+- Scroll down to the Post Processing tab and find the Neural Rendering section
+- Enable NR via the toggle and adjust to your liking
 
 <br>
 
